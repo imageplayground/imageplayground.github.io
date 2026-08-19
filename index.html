@@ -115,17 +115,20 @@ function jsonp(params){
   });
 }
 
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmt(s){ return esc(s).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>'); }
 function addBubble(text, who, cls){
   var row=document.createElement('div');
   row.className='row '+who+(cls?' '+cls:'');
-  var b=document.createElement('div'); b.className='bub'; b.textContent=text;
+  var b=document.createElement('div'); b.className='bub';
+  if(who==='bot' && !cls){ b.innerHTML=fmt(text); } else { b.textContent=text; }
   row.appendChild(b); msgs.appendChild(row);
   msgs.scrollTop=msgs.scrollHeight;
   return row;
 }
 
 function greet(){
-  addBubble('你好 '+NAME+' 👋 有咩師到你？打你想問嘅嘢，或者打單號查沖印進度。', 'bot');
+  addBubble('你好 '+NAME+' 👋 有咩幫到你？打你想問嘅嘢，或者打單號查沖印進度。', 'bot');
 }
 
 async function loadNotice(){
@@ -146,14 +149,14 @@ async function send(){
   typing.parentNode.removeChild(typing);
   busy=false; sendBtn.disabled=false;
   var reply=(r&&r.reply)?r.reply:'';
-  if(r&&(r.error||r.timeout)){ addBubble('網絡唔稉定，進少少再試多次 🙏','bot'); return; }
-  if(reply.indexOf('⚔')===0){
+  if(r&&(r.error||r.timeout)){ addBubble('網絡唔穩定，遲少少再試多次 🙏','bot'); return; }
+  if(reply.indexOf('⛔')===0){
     addBubble(reply,'bot');
     LS.removeItem('img_pass'); PASS='';
-    setTimeout(function(){ showGate('密碼過期或者唔啁，麻煡再入一次。'); }, 700);
+    setTimeout(function(){ showGate('密碼過期或者唔啱，麻煩再入一次。'); }, 700);
     return;
   }
-  addBubble(reply||'（暫時沒回覆，試多次）','bot');
+  addBubble(reply||'（暫時冇回覆，試多次）','bot');
 }
 
 function autolimit(){ qEl.style.height='auto'; qEl.style.height=Math.min(qEl.scrollHeight,120)+'px'; }
@@ -178,12 +181,13 @@ async function tryLogin(){
   if(!st){ err.textContent='揀返你間舖先'; return; }
   if(!nm){ err.textContent='打返你個名'; return; }
   if(!pw){ err.textContent='要入公司密碼'; return; }
-  err.textContent='檢查緂…';
+  err.textContent='檢查緊…';
   var go=document.getElementById('g_go'); go.disabled=true;
   var r=await jsonp({login:'1', pass:pw});
   go.disabled=false;
   if(r&&(r.error||r.timeout)){ err.textContent='網絡唔通，再試一次'; return; }
-  if(!r || !r.ok){ err.textContent='密碼唔啋，搵 Ivan 攞返'; return; }
+  if(!r || !r.ok){ err.textContent='密碼唔啥，搵 Ivan 攞返'; return; }
+  // success
   STORE=st; NAME=nm; PASS=pw;
   LS.setItem('img_store',st); LS.setItem('img_name',nm); LS.setItem('img_pass',pw);
   startChat(true);
