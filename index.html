@@ -2,37 +2,205 @@
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="IMG 店員助手">
 <meta name="theme-color" content="#40B5A5">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="apple-touch-icon.png">
 <title>IMG 店員助手</title>
 <style>
-  html,body{margin:0;height:100%;background:#40B5A5;overflow:hidden;}
-  #f{position:fixed;inset:0;border:0;width:100%;height:100%;background:#f3f8f6;}
-  #s{position:fixed;inset:0;background:linear-gradient(160deg,#4cc0b0,#40B5A5 55%,#2f8f82);
-     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:2;transition:opacity .45s;}
-  #s img{width:118px;height:118px;border-radius:26px;background:#fff;padding:9px;box-sizing:border-box;box-shadow:0 10px 26px rgba(0,0,0,.22);}
-  #s .t{color:#fff;font:800 21px -apple-system,"PingFang HK",sans-serif;letter-spacing:.5px;}
-  #s a{margin-top:6px;color:#fff;font:600 15px -apple-system,"PingFang HK",sans-serif;opacity:.92;text-decoration:underline;}
+  :root{ --teal:#40B5A5; --teal2:#2f8f82; --coral:#E05B48; --bg:#f3f8f6; --ink:#1f2a28; }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang HK","Helvetica Neue",sans-serif;background:var(--bg);color:var(--ink);overflow:hidden;}
+  #app{position:fixed;inset:0;display:flex;flex-direction:column;}
+
+  /* ---------- GATE ---------- */
+  #gate{position:fixed;inset:0;z-index:20;background:linear-gradient(165deg,#4cc0b0,#40B5A5 52%,#2f8f82);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        padding:24px calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));gap:14px;}
+  #gate .logo{width:96px;height:96px;border-radius:24px;background:#fff;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.24);}
+  #gate h1{color:#fff;font-size:21px;font-weight:800;margin:6px 0 2px;letter-spacing:.5px;}
+  #gate .sub{color:#eafff9;font-size:13px;margin-bottom:8px;opacity:.9;}
+  .card{width:100%;max-width:340px;background:#fff;border-radius:18px;padding:16px;box-shadow:0 14px 34px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:11px;}
+  .card label{font-size:12px;color:#5b6b68;margin:2px 2px -4px;}
+  select,input{width:100%;font-size:17px;padding:13px 14px;border:1.5px solid #d7e4e0;border-radius:12px;background:#fbfdfc;color:var(--ink);appearance:none;-webkit-appearance:none;}
+  select:focus,input:focus{outline:none;border-color:var(--teal);}
+  .go{background:var(--teal);color:#fff;font-size:18px;font-weight:800;border:0;border-radius:12px;padding:14px;margin-top:4px;}
+  .go:active{background:var(--teal2);}
+  .err{color:var(--coral);font-size:13px;min-height:16px;text-align:center;}
+
+  /* ---------- CHAT ---------- */
+  header{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;
+         padding:calc(10px + env(safe-area-inset-top)) 14px 10px;flex:0 0 auto;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+  header img{width:34px;height:34px;border-radius:9px;background:#fff;padding:3px;}
+  header .ttl{font-size:17px;font-weight:800;}
+  header .badge{margin-left:auto;background:rgba(255,255,255,.22);color:#fff;font-size:13px;font-weight:700;padding:5px 11px;border-radius:20px;}
+  #notice{background:#fff7ec;color:#8a5a1a;border-bottom:1px solid #f0dcc0;font-size:14px;line-height:1.5;padding:10px 14px;display:none;}
+  #notice b{color:var(--coral);}
+  #msgs{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 12px 6px;display:flex;flex-direction:column;gap:10px;}
+  .row{display:flex;}
+  .row.me{justify-content:flex-end;}
+  .bub{max-width:82%;font-size:18px;line-height:1.5;padding:11px 14px;border-radius:18px;white-space:pre-wrap;word-break:break-word;}
+  .bot .bub{background:#fff;border:1px solid #e4efec;border-bottom-left-radius:5px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .me .bub{background:var(--teal);color:#fff;border-bottom-right-radius:5px;}
+  .typing .bub{color:#8aa19c;font-style:italic;}
+  footer{flex:0 0 auto;display:flex;gap:8px;align-items:flex-end;padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+          background:#fff;border-top:1px solid #e7efec;}
+  #q{flex:1;font-size:17px;line-height:1.4;padding:11px 14px;border:1.5px solid #d7e4e0;border-radius:22px;background:#fbfdfc;max-height:120px;resize:none;}
+  #q:focus{outline:none;border-color:var(--teal);}
+  #send{flex:0 0 auto;background:var(--teal);color:#fff;font-size:17px;font-weight:800;border:0;border-radius:22px;padding:11px 20px;}
+  #send:active{background:var(--teal2);}
+  #send:disabled{opacity:.5;}
 </style>
 </head>
 <body>
-  <div id="s">
+<div id="app">
+  <header>
     <img src="apple-touch-icon.png" alt="IMG">
-    <div class="t">IMG 店員助手</div>
-    <a id="open" href="https://script.google.com/macros/s/AKfycbyvoP33UIINAsBdm5X0FXTq0Qp6sFcvYshJOKyzziASDqjiyDV_Q3yxWn1GlRAMQOQY/exec" target="_top">載入中…</a>
+    <div class="ttl">店員助手</div>
+    <div class="badge" id="badge"></div>
+  </header>
+  <div id="notice"></div>
+  <div id="msgs"></div>
+  <footer>
+    <textarea id="q" rows="1" placeholder="打你想問嘅嘢…" enterkeyhint="send"></textarea>
+    <button id="send">問</button>
+  </footer>
+</div>
+
+<div id="gate">
+  <img class="logo" src="apple-touch-icon.png" alt="IMG">
+  <h1>IMG 店員助手</h1>
+  <div class="sub">前線同事專用 · 入一次就記住</div>
+  <div class="card">
+    <label>邊間舖</label>
+    <select id="g_store">
+      <option value="">— 揀舖頭 —</option>
+      <option value="旺角">旺角 MK</option>
+      <option value="中環">中環 CEN</option>
+      <option value="銅鑼灣">銅鑼灣 CWB</option>
+    </select>
+    <label>你個名 / 花名</label>
+    <input id="g_name" type="text" autocomplete="off" placeholder="例如：阿明">
+    <label>公司密碼</label>
+    <input id="g_pass" type="password" autocomplete="off" placeholder="搵 Ivan 攞">
+    <div class="err" id="g_err"></div>
+    <button class="go" id="g_go">開始用</button>
   </div>
-  <iframe id="f" src="https://script.google.com/macros/s/AKfycbyvoP33UIINAsBdm5X0FXTq0Qp6sFcvYshJOKyzziASDqjiyDV_Q3yxWn1GlRAMQOQY/exec" allow="clipboard-write; microphone; camera"></iframe>
-  <script>
-    var f=document.getElementById('f'), s=document.getElementById('s'), o=document.getElementById('open');
-    var loaded=false;
-    f.addEventListener('load', function(){ loaded=true; setTimeout(function(){ s.style.opacity='0'; setTimeout(function(){s.style.display='none';},450); },350); });
-    setTimeout(function(){ if(!loaded){ o.textContent='撳呢度開 App'; } }, 6000);
-  </script>
+</div>
+</div>
+
+<script>
+var API='https://script.google.com/macros/s/AKfycbyvoP33UIINAsBdm5X0FXTq0Qp6sFcvYshJOKyzziASDqjiyDV_Q3yxWn1GlRAMQOQY/exec';
+var LS=window.localStorage;
+var STORE=LS.getItem('img_store')||'', NAME=LS.getItem('img_name')||'', PASS=LS.getItem('img_pass')||'';
+var msgs=document.getElementById('msgs');
+var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
+var busy=false, seq=0;
+
+function jsonp(params){
+  return new Promise(function(resolve){
+    var cb='j'+(seq++)+'_'+Math.floor(performance.now());
+    var s=document.createElement('script');
+    var done=false;
+    window[cb]=function(d){ done=true; try{delete window[cb];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); resolve(d); };
+    var qs=Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
+    s.src=API+'?'+qs+'&callback='+cb;
+    s.onerror=function(){ if(!done){done=true; if(s.parentNode)s.parentNode.removeChild(s); resolve({error:1});} };
+    document.body.appendChild(s);
+    setTimeout(function(){ if(!done){done=true; if(s.parentNode)s.parentNode.removeChild(s); resolve({timeout:1});} }, 30000);
+  });
+}
+
+function addBubble(text, who, cls){
+  var row=document.createElement('div');
+  row.className='row '+who+(cls?' '+cls:'');
+  var b=document.createElement('div'); b.className='bub'; b.textContent=text;
+  row.appendChild(b); msgs.appendChild(row);
+  msgs.scrollTop=msgs.scrollHeight;
+  return row;
+}
+
+function greet(){
+  addBubble('你好 '+NAME+' 👋 有咩師到你？打你想問嘅嘢，或者打單號查沖印進度。', 'bot');
+}
+
+async function loadNotice(){
+  var r=await jsonp({notice:'1'});
+  var n=(r&&r.notice)?String(r.notice).trim():'';
+  if(n){ var el=document.getElementById('notice'); el.innerHTML='<b>公告：</b>'+n.replace(/</g,'&lt;'); el.style.display='block'; }
+}
+
+async function send(){
+  if(busy) return;
+  var t=qEl.value.trim();
+  if(!t) return;
+  qEl.value=''; autolimit();
+  addBubble(t,'me');
+  busy=true; sendBtn.disabled=true;
+  var typing=addBubble('諗緊…','bot','typing');
+  var r=await jsonp({api:'1', pass:PASS, user:STORE+'-'+NAME, q:t});
+  typing.parentNode.removeChild(typing);
+  busy=false; sendBtn.disabled=false;
+  var reply=(r&&r.reply)?r.reply:'';
+  if(r&&(r.error||r.timeout)){ addBubble('網絡唔稉定，進少少再試多次 🙏','bot'); return; }
+  if(reply.indexOf('⚔')===0){
+    addBubble(reply,'bot');
+    LS.removeItem('img_pass'); PASS='';
+    setTimeout(function(){ showGate('密碼過期或者唔啁，麻煡再入一次。'); }, 700);
+    return;
+  }
+  addBubble(reply||'（暫時沒回覆，試多次）','bot');
+}
+
+function autolimit(){ qEl.style.height='auto'; qEl.style.height=Math.min(qEl.scrollHeight,120)+'px'; }
+qEl.addEventListener('input', autolimit);
+qEl.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } });
+sendBtn.addEventListener('click', send);
+
+/* ---------- gate ---------- */
+function showGate(msg){
+  document.getElementById('gate').style.display='flex';
+  document.getElementById('g_err').textContent=msg||'';
+  if(STORE) document.getElementById('g_store').value=STORE;
+  if(NAME) document.getElementById('g_name').value=NAME;
+}
+function hideGate(){ document.getElementById('gate').style.display='none'; }
+
+async function tryLogin(){
+  var st=document.getElementById('g_store').value;
+  var nm=document.getElementById('g_name').value.trim();
+  var pw=document.getElementById('g_pass').value;
+  var err=document.getElementById('g_err');
+  if(!st){ err.textContent='揀返你間舖先'; return; }
+  if(!nm){ err.textContent='打返你個名'; return; }
+  if(!pw){ err.textContent='要入公司密碼'; return; }
+  err.textContent='檢查緂…';
+  var go=document.getElementById('g_go'); go.disabled=true;
+  var r=await jsonp({login:'1', pass:pw});
+  go.disabled=false;
+  if(r&&(r.error||r.timeout)){ err.textContent='網絡唔通，再試一次'; return; }
+  if(!r || !r.ok){ err.textContent='密碼唔啋，搵 Ivan 攞返'; return; }
+  STORE=st; NAME=nm; PASS=pw;
+  LS.setItem('img_store',st); LS.setItem('img_name',nm); LS.setItem('img_pass',pw);
+  startChat(true);
+}
+document.getElementById('g_go').addEventListener('click', tryLogin);
+document.getElementById('g_pass').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); tryLogin(); } });
+
+function startChat(fresh){
+  hideGate();
+  document.getElementById('badge').textContent=STORE+' · '+NAME;
+  if(fresh){ msgs.innerHTML=''; greet(); }
+  loadNotice();
+}
+
+/* ---------- boot ---------- */
+if(STORE && NAME && PASS){ startChat(true); }
+else { showGate(''); }
+</script>
 </body>
 </html>
