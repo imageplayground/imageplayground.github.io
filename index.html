@@ -23,14 +23,16 @@
         padding:24px calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));gap:14px;}
   #gate .logo{width:96px;height:96px;border-radius:24px;background:#fff;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.24);}
   #gate h1{color:#fff;font-size:21px;font-weight:800;margin:6px 0 2px;letter-spacing:.5px;}
-  #gate .sub{color:#eafff9;font-size:13px;margin-bottom:8px;opacity:.9;}
-  .card{width:100%;max-width:340px;background:#fff;border-radius:18px;padding:16px;box-shadow:0 14px 34px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:11px;}
-  .card label{font-size:12px;color:#5b6b68;margin:2px 2px -4px;}
-  select,input{width:100%;font-size:17px;padding:13px 14px;border:1.5px solid #d7e4e0;border-radius:12px;background:#fbfdfc;color:var(--ink);appearance:none;-webkit-appearance:none;}
-  select:focus,input:focus{outline:none;border-color:var(--teal);}
-  .go{background:var(--teal);color:#fff;font-size:18px;font-weight:800;border:0;border-radius:12px;padding:14px;margin-top:4px;}
+  #gate .sub{color:#eafff9;font-size:13px;margin-bottom:8px;opacity:.9;text-align:center;}
+  .card{width:100%;max-width:320px;background:#fff;border-radius:18px;padding:18px 16px;box-shadow:0 14px 34px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:12px;}
+  .card label{font-size:12px;color:#5b6b68;margin:2px 2px -6px;}
+  #pin{width:100%;font-size:26px;letter-spacing:8px;text-align:center;padding:14px;border:1.5px solid #d7e4e0;border-radius:12px;background:#fbfdfc;color:var(--ink);font-weight:700;}
+  #pin:focus{outline:none;border-color:var(--teal);}
+  .go{background:var(--teal);color:#fff;font-size:18px;font-weight:800;border:0;border-radius:12px;padding:14px;margin-top:2px;}
   .go:active{background:var(--teal2);}
+  .go:disabled{opacity:.55;}
   .err{color:var(--coral);font-size:13px;min-height:16px;text-align:center;}
+  .hint{color:#7d8c88;font-size:12px;text-align:center;margin-top:-2px;}
 
   /* ---------- CHAT ---------- */
   header{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;
@@ -74,29 +76,20 @@
 <div id="gate">
   <img class="logo" src="apple-touch-icon.png" alt="IMG">
   <h1>IMG 店員助手</h1>
-  <div class="sub">前線同事專用 · 入一次就記住</div>
+  <div class="sub">前線同事專用 · 入你自己嘅登入碼</div>
   <div class="card">
-    <label>邊間舖</label>
-    <select id="g_store">
-      <option value="">— 揀舖頭 —</option>
-      <option value="旺角">旺角 MK</option>
-      <option value="中環">中環 CEN</option>
-      <option value="銅鑼灣">銅鑼灣 CWB</option>
-    </select>
-    <label>你個名 / 花名</label>
-    <input id="g_name" type="text" autocomplete="off" placeholder="例如：阿明">
-    <label>公司密碼</label>
-    <input id="g_pass" type="password" autocomplete="off" placeholder="搵 Ivan 攞">
+    <label>你嘅登入碼</label>
+    <input id="pin" type="tel" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="＿＿＿＿">
     <div class="err" id="g_err"></div>
     <button class="go" id="g_go">開始用</button>
+    <div class="hint">每人一個碼，唔好借人。唔記得碼搵 Ivan。</div>
   </div>
-</div>
 </div>
 
 <script>
 var API='https://script.google.com/macros/s/AKfycbyvoP33UIINAsBdm5X0FXTq0Qp6sFcvYshJOKyzziASDqjiyDV_Q3yxWn1GlRAMQOQY/exec';
 var LS=window.localStorage;
-var STORE=LS.getItem('img_store')||'', NAME=LS.getItem('img_name')||'', PASS=LS.getItem('img_pass')||'';
+var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.getItem('img_store')||'';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -145,15 +138,15 @@ async function send(){
   addBubble(t,'me');
   busy=true; sendBtn.disabled=true;
   var typing=addBubble('諗緊…','bot','typing');
-  var r=await jsonp({api:'1', pass:PASS, user:STORE+'-'+NAME, q:t});
+  var r=await jsonp({api:'1', code:PIN, q:t});
   typing.parentNode.removeChild(typing);
   busy=false; sendBtn.disabled=false;
   var reply=(r&&r.reply)?r.reply:'';
   if(r&&(r.error||r.timeout)){ addBubble('網絡唔穩定，遲少少再試多次 🙏','bot'); return; }
   if(reply.indexOf('⛔')===0){
     addBubble(reply,'bot');
-    LS.removeItem('img_pass'); PASS='';
-    setTimeout(function(){ showGate('密碼過期或者唔啱，麻煩再入一次。'); }, 700);
+    LS.removeItem('img_pin'); PIN='';
+    setTimeout(function(){ showGate('登入碼過期或者停咗，麻煩再入一次。'); }, 800);
     return;
   }
   addBubble(reply||'（暫時冇回覆，試多次）','bot');
@@ -168,42 +161,36 @@ sendBtn.addEventListener('click', send);
 function showGate(msg){
   document.getElementById('gate').style.display='flex';
   document.getElementById('g_err').textContent=msg||'';
-  if(STORE) document.getElementById('g_store').value=STORE;
-  if(NAME) document.getElementById('g_name').value=NAME;
+  document.getElementById('pin').value='';
 }
 function hideGate(){ document.getElementById('gate').style.display='none'; }
 
 async function tryLogin(){
-  var st=document.getElementById('g_store').value;
-  var nm=document.getElementById('g_name').value.trim();
-  var pw=document.getElementById('g_pass').value;
+  var pw=document.getElementById('pin').value.trim();
   var err=document.getElementById('g_err');
-  if(!st){ err.textContent='揀返你間舖先'; return; }
-  if(!nm){ err.textContent='打返你個名'; return; }
-  if(!pw){ err.textContent='要入公司密碼'; return; }
+  if(!pw){ err.textContent='入你唅登入碼'; return; }
   err.textContent='檢查緊…';
   var go=document.getElementById('g_go'); go.disabled=true;
-  var r=await jsonp({login:'1', pass:pw});
+  var r=await jsonp({login:'1', code:pw});
   go.disabled=false;
   if(r&&(r.error||r.timeout)){ err.textContent='網絡唔通，再試一次'; return; }
-  if(!r || !r.ok){ err.textContent='密碼唔啥，搵 Ivan 攞返'; return; }
-  // success
-  STORE=st; NAME=nm; PASS=pw;
-  LS.setItem('img_store',st); LS.setItem('img_name',nm); LS.setItem('img_pass',pw);
+  if(!r || !r.ok){ err.textContent='登入碼唔啥，搵 Ivan 攞返'; return; }
+  PIN=pw; NAME=r.name||''; STORE=r.store||'';
+  LS.setItem('img_pin',pw); LS.setItem('img_name',NAME); LS.setItem('img_store',STORE);
   startChat(true);
 }
 document.getElementById('g_go').addEventListener('click', tryLogin);
-document.getElementById('g_pass').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); tryLogin(); } });
+document.getElementById('pin').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); tryLogin(); } });
 
 function startChat(fresh){
   hideGate();
-  document.getElementById('badge').textContent=STORE+' · '+NAME;
+  document.getElementById('badge').textContent=(STORE?STORE+' · ':'')+NAME;
   if(fresh){ msgs.innerHTML=''; greet(); }
   loadNotice();
 }
 
 /* ---------- boot ---------- */
-if(STORE && NAME && PASS){ startChat(true); }
+if(PIN && NAME){ startChat(true); }
 else { showGate(''); }
 </script>
 </body>
