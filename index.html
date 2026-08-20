@@ -306,7 +306,7 @@ var PLAN=[
     '19:30 填 Sales Target',
     '橙機日結、黑機（AE）日結',
     '20:00 翻牌關閉、鎖門（唔可早收）',
-    'POS 黆錢箱對數（差 >$200 即搵經理）→ 留 $2000、餘額入錢袋',
+    'POS 點錢箱對數（差 >$200 即搵經理）→ 留 $2000、餘額入錢袋',
     '影 4 張相 send WhatsApp「Imageplayground Shop」',
     '沖機支架泡水、關掃描儀、logout POS、關卡機叉電',
     '貓：糧水、清砂、開風扇',
@@ -383,7 +383,7 @@ async function loadRecvList(){
           +'<input class="rv-in" id="rvs'+idx+'" placeholder="機身 Serial（例：SN12345）">'
           +'<select class="rv-sel" id="rvcd'+idx+'"><option value="">機況（揀一個）</option>'+COND_OPTS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('')+'</select>'
           +'<input class="rv-in" id="rva'+idx+'" placeholder="配件（例：原電、原盒、鏡頭蓋）">'
-          +'<div class="rv-photo" id="rvpw'+idx+'"><div class="rv-lb rv-photolb">壞機相（機況揀「有問題／待檢」先要影：影機身 + serial 位）</div><input class="rv-file" id="rvp'+idx+'" type="file" accept="image/*" capture="environment"><div class="rv-thumb" id="rvth'+idx+'"></div></div>'
+          +'<div class="rv-photo" id="rvpw'+idx+'"><div class="rv-lb rv-photolb">壞機相（有相更好：影機身 + serial 位；暫時可留空，Ivan 會跟）</div><input class="rv-file" id="rvp'+idx+'" type="file" accept="image/*" capture="environment"><div class="rv-thumb" id="rvth'+idx+'"></div></div>'
         +'</details>'
         +'<button class="rv-sub" id="rvb'+idx+'">提交收貨</button>'
         +'<div id="rvr'+idx+'"></div>'
@@ -420,8 +420,8 @@ function compressImg(file, maxW, q){
 }
 function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
 async function uploadRecvPhoto(b64, uploadId){
-  try{ await fetch(API+'?photoup=1&code='+encodeURIComponent(PIN)+'&id='+encodeURIComponent(uploadId), {method:'POST', mode:'no-cors', body:b64}); }catch(e){}
-  for(var i=0;i<25;i++){
+  try{ await fetch(API, {method:'POST', mode:'no-cors', body: JSON.stringify({code:PIN, id:uploadId, data:b64})}); }catch(e){}
+  for(var i=0;i<5;i++){
     var r=await jsonp({photoget:'1', id:uploadId});
     if(r && r.ok && r.url) return r.url;
     await sleep(700);
@@ -439,34 +439,30 @@ async function submitRecv(it, idx, btn){
   var accRaw=(document.getElementById('rva'+idx).value||'').trim();
   var acc=(cond?'【'+cond+'】':'')+(accRaw?(cond?' ':'')+accRaw:'');
   var broken=(cond==='有問題／待檢');
-  if(broken){
-    if(!serial){ res.innerHTML='<div class="rv-res broken">壞機一定要填 <b>serial</b> 先交得。</div>'; document.getElementById('rvs'+idx).focus(); return; }
-    if(!RECV_PHOTO[idx]){ res.innerHTML='<div class="rv-res broken">壞機一定要 <b>影相</b>（影機身 + serial 位）先交得。</div>'; return; }
-  }
+  if(broken && !serial){ res.innerHTML='<div class="rv-res broken">壞機一定要填 <b>serial</b> 先交得。</div>'; document.getElementById('rvs'+idx).focus(); return; }
   btn.disabled=true;
   var photoUrl='';
-  if(broken){
+  if(broken && RECV_PHOTO[idx]){
     btn.textContent='上載相…';
     var uploadId='p'+Date.now()+'_'+idx+'_'+Math.floor(Math.random()*100000);
-    photoUrl=await uploadRecvPhoto(RECV_PHOTO[idx], uploadId);
-    if(!photoUrl){ btn.disabled=false; btn.textContent='提交收貨'; res.innerHTML='<div class="rv-res broken">相上載唔到（網絡問題），再試一次 🙏</div>'; return; }
+    photoUrl=await uploadRecvPhoto(RECV_PHOTO[idx], uploadId);  // 盡力上傳;傳唔到都照交
   }
   btn.textContent='提交緊…';
   var r=await jsonp({receive:'1', code:PIN, row:it.row, po:it.po, blind:blind, serial:serial, acc:acc, broken:broken?'1':'0', cond:cond, photo:photoUrl});
-  if(!r || !r.ok){ 
+  if(!r || !r.ok){
     btn.disabled=false; btn.textContent='提交收貨';
     var msg=(r&&r.err==='mismatch')?'呢張 PO 對唔上你間舖，搵 Ivan 睇睇。':'交唔到，網絡唔穩定，再試一次 🙏';
     res.innerHTML='<div class="rv-res diff">'+msg+'</div>'; return;
   }
   nEl.disabled=true; btn.style.display='none';
   if(r.result==='壞機'){
-    res.innerHTML='<div class="rv-res broken">⚠️ 已記錄<b>壞機</b>（serial '+esc(serial)+'）+ 相，唔會入正常庫存。已即刻通知 Ivan，等你批「報廢／零件機」。你唔使再搞。</div>';
+    res.innerHTML='<div class="rv-res broken">⚠️ 已記錄<b>壞機</b>（serial '+esc(serial)+'）+ 相，唔會入正常庫存。已即刻通知 Ivan，等佢批「報廢／零件機」。你唔使再搞。</div>';
     setTimeout(loadRecvList, 2600);
   } else if(r.result==='啱'){
     res.innerHTML='<div class="rv-res ok">✓ 收貨完成，數啱晒（'+r.blind+' '+esc(it.unit||'件')+'）。已入紀錄，唔使再搞。</div>';
     setTimeout(loadRecvList, 2600);
   } else {
-    res.innerHTML='<div class="rv-res diff">⚠️ 數唔夾：你數到 <b>'+r.blind+'</b>，PO 應該係 <b>'+r.expect+'</b>。<br>麻照再數一次；如果真係唔同，即刻同 Ivan／經理譛，你哏會跟。已經幫你入嗗紀錄。</div>';
+    res.innerHTML='<div class="rv-res diff">⚠️ 數唔夾：你數到 <b>'+r.blind+'</b>，PO 應該係 <b>'+r.expect+'</b>。<br>麻煩再數一次；如果真係唔同，即刻同 Ivan／經理講，佢哋會跟。已經幫你入咗紀錄。</div>';
   }
 }
 document.getElementById('recvBtn').addEventListener('click', recvOpen);
