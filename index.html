@@ -58,7 +58,7 @@
   #send:disabled{opacity:.5;}
 
   /* ---------- 今日流程 ---------- */
-  header .plan-btn{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:14px;font-weight:800;padding:6px 11px;border-radius:10px;}
+  header .plan-btn{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:14px;font-weight:800;padding:6px 11px;border-radius:10px;white-space:nowrap;}
   header .plan-btn:active{background:rgba(255,255,255,.34);}
   #plan{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
   #plan .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
@@ -88,6 +88,44 @@
   .kpi-in.hit .kpi-num{color:var(--teal);}
   .kpi-tg{font-size:12px;font-weight:800;color:#9aa8a4;background:#f2f7f5;padding:3px 9px;border-radius:20px;}
   .kpi-sub{font-size:11px;color:#9aa8a4;padding:5px 4px 0;text-align:center;}
+
+  /* ---------- 收貨 receiving ---------- */
+  header{gap:8px;}
+  header .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  header .badge{max-width:32vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  header .recv-btn{background:rgba(255,255,255,.2);border:0;color:#fff;font-size:14px;font-weight:800;padding:6px 11px;border-radius:10px;white-space:nowrap;}
+  header .recv-btn:active{background:rgba(255,255,255,.34);}
+  #recv{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
+  #recv .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+  #recv .ph .t{font-size:17px;font-weight:800;}
+  #recv .ph .x{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:16px;font-weight:800;width:34px;height:34px;border-radius:10px;}
+  #recv .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(20px + env(safe-area-inset-bottom));}
+  .rv-intro{font-size:13px;line-height:1.55;color:#5b6b68;background:#fff7ec;border:1px solid #f0dcc0;border-radius:12px;padding:11px 13px;margin-bottom:12px;}
+  .rv-intro b{color:var(--coral);}
+  .rv-card{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:13px 14px;margin-bottom:11px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .rv-prod{font-size:16px;font-weight:800;color:var(--ink);line-height:1.35;}
+  .rv-meta{font-size:12px;color:#8a9894;margin-top:5px;}
+  .rv-meta span{margin-right:10px;white-space:nowrap;}
+  .rv-open{margin-top:11px;width:100%;background:var(--teal);color:#fff;font-size:15px;font-weight:800;border:0;border-radius:10px;padding:11px;}
+  .rv-open:active{background:var(--teal2);}
+  .rv-empty{text-align:center;color:#9aa8a4;font-size:14px;padding:34px 20px;line-height:1.7;}
+  .rv-form{margin-top:12px;border-top:1px dashed #dbe7e3;padding-top:12px;display:none;}
+  .rv-form.open{display:block;}
+  .rv-lb{font-size:13px;font-weight:800;color:#5b6b68;margin:0 2px 5px;}
+  .rv-cnt{width:100%;font-size:24px;font-weight:800;text-align:center;letter-spacing:2px;padding:12px;border:1.5px solid #d7e4e0;border-radius:12px;background:#fbfdfc;color:var(--ink);}
+  .rv-cnt:focus{outline:none;border-color:var(--teal);}
+  .rv-more{margin-top:12px;}
+  .rv-more summary{font-size:13px;font-weight:800;color:var(--teal2);cursor:pointer;list-style:none;padding:6px 2px;}
+  .rv-more summary::-webkit-details-marker{display:none;}
+  .rv-in{width:100%;font-size:16px;padding:11px 12px;border:1.5px solid #d7e4e0;border-radius:10px;background:#fbfdfc;color:var(--ink);margin-top:6px;}
+  .rv-in:focus{outline:none;border-color:var(--teal);}
+  .rv-sel{width:100%;font-size:16px;padding:11px 12px;border:1.5px solid #d7e4e0;border-radius:10px;background:#fbfdfc;color:var(--ink);margin-top:6px;}
+  .rv-sub{margin-top:14px;width:100%;background:var(--coral);color:#fff;font-size:16px;font-weight:800;border:0;border-radius:11px;padding:13px;}
+  .rv-sub:active{opacity:.85;}
+  .rv-sub:disabled{opacity:.5;}
+  .rv-res{margin-top:12px;border-radius:12px;padding:13px 14px;font-size:15px;line-height:1.55;}
+  .rv-res.ok{background:linear-gradient(120deg,#eafaf6,#dff5ef);border:1px solid #bfe6da;color:#1f6b5c;}
+  .rv-res.diff{background:#fff3f1;border:1px solid #f3c9c2;color:#b23a28;}
 </style>
 </head>
 <body>
@@ -96,6 +134,7 @@
     <img src="apple-touch-icon.png" alt="IMG">
     <div class="ttl">店員助手</div>
     <button class="plan-btn" id="planBtn">📋 今日</button>
+    <button class="recv-btn" id="recvBtn">📦 收貨</button>
     <div class="badge" id="badge"></div>
   </header>
   <div id="notice"></div>
@@ -124,6 +163,11 @@
   <div class="kpi" id="kpi"></div>
   <div class="body" id="planBody"></div>
   <div class="tip">打勾淨係方便你自己記住，每日自動清。</div>
+</div>
+
+<div id="recv">
+  <div class="ph"><div class="t">📦 收貨</div><button class="x" id="recvClose">✕</button></div>
+  <div class="body" id="recvBody"></div>
 </div>
 
 <script>
@@ -256,7 +300,7 @@ var PLAN=[
     '19:30 填 Sales Target',
     '橙機日結、黑機（AE）日結',
     '20:00 翻牌關閉、鎖門（唔可早收）',
-    'POS 黆錢箱對數（差 >$200 即搵經理）→ 留 $2000、餘額入錢袋',
+    'POS 點錢箱對數（差 >$200 即搵經理）→ 留 $2000、餘額入錢袋',
     '影 4 張相 send WhatsApp「Imageplayground Shop」',
     '沖機支架泡水、關掃描儀、logout POS、關卡機叉電',
     '貓：糧水、清砂、開風扇',
@@ -305,6 +349,78 @@ async function loadKpi(){
 }
 document.getElementById('planBtn').addEventListener('click', function(){ renderPlan(); document.getElementById('plan').style.display='flex'; loadKpi(); });
 document.getElementById('planClose').addEventListener('click', function(){ document.getElementById('plan').style.display='none'; });
+
+/* ---------- 收貨 receiving ---------- */
+var COND_OPTS=['全新未開','接近全新','輕微使用痕','明顯花／舊','有問題／待檢'];
+function recvOpen(){ document.getElementById('recv').style.display='flex'; loadRecvList(); }
+function recvClose(){ document.getElementById('recv').style.display='none'; }
+async function loadRecvList(){
+  var body=document.getElementById('recvBody');
+  body.innerHTML='<div class="rv-empty">攞緊今日要收嘅貨…</div>';
+  var r=await jsonp({receivelist:'1', code:PIN});
+  if(!r || !r.ok){ body.innerHTML='<div class="rv-empty">暫時攞唔到，遲少少再試 🙏</div>'; return; }
+  var items=r.items||[];
+  var html='<div class="rv-intro">收貨要<b>盲數</b>：你未見到 PO 應該幾多，照實數幾多入幾多。數完系統即刻同你對數，唔啱會即時話你知。二手機記得填 serial 同機況。</div>';
+  if(!items.length){
+    html+='<div class="rv-empty">而家冇貨要收 👍<br>有新貨發到你間舖，先會喺度出現。</div>';
+    body.innerHTML=html; return;
+  }
+  items.forEach(function(it,idx){
+    html+='<div class="rv-card" id="rvc'+idx+'">'
+      +'<div class="rv-prod">'+esc(it.product||'(未命名)')+'</div>'
+      +'<div class="rv-meta"><span>PO '+esc(it.po)+'</span>'+(it.supplier?'<span>'+esc(it.supplier)+'</span>':'')+(it.sku?'<span>SKU '+esc(it.sku)+'</span>':'')+'</div>'
+      +'<button class="rv-open" id="rvo'+idx+'">開始收呢件</button>'
+      +'<div class="rv-form" id="rvf'+idx+'">'
+        +'<div class="rv-lb">實際數到幾多（'+esc(it.unit||'件')+'）？</div>'
+        +'<input class="rv-cnt" id="rvn'+idx+'" type="tel" inputmode="numeric" placeholder="0">'
+        +'<details class="rv-more"><summary>＋ 二手機資料（serial／機況／配件）</summary>'
+          +'<input class="rv-in" id="rvs'+idx+'" placeholder="機身 Serial（例：SN12345）">'
+          +'<select class="rv-sel" id="rvcd'+idx+'"><option value="">機況（揀一個）</option>'+COND_OPTS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('')+'</select>'
+          +'<input class="rv-in" id="rva'+idx+'" placeholder="配件（例：原電、原盒、鏡頭蓋）">'
+        +'</details>'
+        +'<button class="rv-sub" id="rvb'+idx+'">提交收貨</button>'
+        +'<div id="rvr'+idx+'"></div>'
+      +'</div>'
+    +'</div>';
+  });
+  body.innerHTML=html;
+  items.forEach(function(it,idx){
+    document.getElementById('rvo'+idx).onclick=function(){
+      var f=document.getElementById('rvf'+idx);
+      var open=f.classList.toggle('open');
+      this.style.display=open?'none':'block';
+      if(open){ document.getElementById('rvn'+idx).focus(); }
+    };
+    document.getElementById('rvb'+idx).onclick=function(){ submitRecv(it, idx, this); };
+  });
+}
+async function submitRecv(it, idx, btn){
+  var nEl=document.getElementById('rvn'+idx);
+  var res=document.getElementById('rvr'+idx);
+  var raw=(nEl.value||'').trim();
+  if(raw===''||isNaN(Number(raw))){ res.innerHTML='<div class="rv-res diff">入返個數先得（實際數到幾多件）。</div>'; nEl.focus(); return; }
+  var blind=Number(raw);
+  var serial=(document.getElementById('rvs'+idx).value||'').trim();
+  var cond=(document.getElementById('rvcd'+idx).value||'').trim();
+  var accRaw=(document.getElementById('rva'+idx).value||'').trim();
+  var acc=(cond?'【'+cond+'】':'')+(accRaw?(cond?' ':'')+accRaw:'');
+  btn.disabled=true; btn.textContent='提交緊…';
+  var r=await jsonp({receive:'1', code:PIN, row:it.row, po:it.po, blind:blind, serial:serial, acc:acc});
+  if(!r || !r.ok){
+    btn.disabled=false; btn.textContent='提交收貨';
+    var msg=(r&&r.err==='mismatch')?'呢張 PO 對唔上你間舖，搵 Ivan 睇睇。':'交唔到，網絡唔穩定，再試一次 🙏';
+    res.innerHTML='<div class="rv-res diff">'+msg+'</div>'; return;
+  }
+  nEl.disabled=true; btn.style.display='none';
+  if(r.result==='啱'){
+    res.innerHTML='<div class="rv-res ok">✓ 收貨完成，數啱晒（'+r.blind+' '+esc(it.unit||'件')+'）。已入紀錄，唔使再搞。</div>';
+    setTimeout(loadRecvList, 2600);
+  } else {
+    res.innerHTML='<div class="rv-res diff">⚠️ 數唔夾：你數到 <b>'+r.blind+'</b>，PO 應該係 <b>'+r.expect+'</b>。<br>麻煩再數一次；如果真係唔同，即刻同 Ivan／經理講，佢哋會跟。已經幫你入咗紀錄。</div>';
+  }
+}
+document.getElementById('recvBtn').addEventListener('click', recvOpen);
+document.getElementById('recvClose').addEventListener('click', recvClose);
 
 /* ---------- boot ---------- */
 if(PIN && NAME){ startChat(true); }
