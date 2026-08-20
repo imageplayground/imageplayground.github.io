@@ -79,6 +79,15 @@
   .it .tx{font-size:15.5px;line-height:1.45;}
   .it.done .tx{color:#9aa8a4;text-decoration:line-through;}
   #plan .tip{font-size:12px;color:#8a9894;text-align:center;padding:2px 10px 12px;}
+  .kpi{padding:10px 12px 0;}
+  .kpi-in{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e4efec;border-radius:14px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .kpi-in.hit{background:linear-gradient(120deg,#eafaf6,#dff5ef);border-color:#bfe6da;}
+  .kpi-ic{font-size:22px;}
+  .kpi-tx{font-size:15px;font-weight:800;color:var(--ink);}
+  .kpi-num{margin-left:auto;font-size:26px;font-weight:800;color:var(--teal2);line-height:1;}
+  .kpi-in.hit .kpi-num{color:var(--teal);}
+  .kpi-tg{font-size:12px;font-weight:800;color:#9aa8a4;background:#f2f7f5;padding:3px 9px;border-radius:20px;}
+  .kpi-sub{font-size:11px;color:#9aa8a4;padding:5px 4px 0;text-align:center;}
 </style>
 </head>
 <body>
@@ -92,7 +101,7 @@
   <div id="notice"></div>
   <div id="msgs"></div>
   <footer>
-    <textarea id="q" rows="1" placeholder="打你想問嘅嘂…" enterkeyhint="send"></textarea>
+    <textarea id="q" rows="1" placeholder="打你想問嘅嘢…" enterkeyhint="send"></textarea>
     <button id="send">問</button>
   </footer>
 </div>
@@ -112,6 +121,7 @@
 
 <div id="plan">
   <div class="ph"><div class="t">📋 今日流程</div><button class="x" id="planClose">✕</button></div>
+  <div class="kpi" id="kpi"></div>
   <div class="body" id="planBody"></div>
   <div class="tip">打勾淨係方便你自己記住，每日自動清。</div>
 </div>
@@ -179,7 +189,7 @@ async function send(){
     setTimeout(function(){ showGate('登入碼過期或者停咗，麻煩再入一次。'); }, 800);
     return;
   }
-  addBubble(reply||'（暫時内回覆，試多次）','bot');
+  addBubble(reply||'（暫時冇回覆，試多次）','bot');
 }
 
 function autolimit(){ qEl.style.height='auto'; qEl.style.height=Math.min(qEl.scrollHeight,120)+'px'; }
@@ -246,7 +256,7 @@ var PLAN=[
     '19:30 填 Sales Target',
     '橙機日結、黑機（AE）日結',
     '20:00 翻牌關閉、鎖門（唔可早收）',
-    'POS 點錢箱對數（差 >$200 即搵經理）→ 留 $2000、餘額入錢袋',
+    'POS 黆錢箱對數（差 >$200 即搵經理）→ 留 $2000、餘額入錢袋',
     '影 4 張相 send WhatsApp「Imageplayground Shop」',
     '沖機支架泡水、關掃描儀、logout POS、關卡機叉電',
     '貓：糧水、清砂、開風扇',
@@ -281,7 +291,19 @@ function renderPlan(){
     wrap.appendChild(items); body.appendChild(wrap);
   });
 }
-document.getElementById('planBtn').addEventListener('click', function(){ renderPlan(); document.getElementById('plan').style.display='flex'; });
+var KPI_TARGET=6;
+async function loadKpi(){
+  var el=document.getElementById('kpi');
+  el.innerHTML='<div class="kpi-in"><span class="kpi-ic">📸</span><span class="kpi-tx">今日 IG story</span><span class="kpi-num">…</span></div><div class="kpi-sub">全店今日出咗幾多條 story</div>';
+  var r=await jsonp({storycount:'1'});
+  if(r && r.ok){
+    var n=r.count||0; var hit=n>=KPI_TARGET;
+    el.innerHTML='<div class="kpi-in'+(hit?' hit':'')+'"><span class="kpi-ic">📸</span><span class="kpi-tx">今日 IG story</span><span class="kpi-num">'+n+'</span><span class="kpi-tg">目標 '+KPI_TARGET+'</span></div><div class="kpi-sub">全店今日出咗幾多條 story'+(hit?' · 夠數 👍':'')+'</div>';
+  } else {
+    el.innerHTML='<div class="kpi-in"><span class="kpi-ic">📸</span><span class="kpi-tx">今日 IG story</span><span class="kpi-num">–</span></div><div class="kpi-sub">暫時攞唔到，遲少少再開</div>';
+  }
+}
+document.getElementById('planBtn').addEventListener('click', function(){ renderPlan(); document.getElementById('plan').style.display='flex'; loadKpi(); });
 document.getElementById('planClose').addEventListener('click', function(){ document.getElementById('plan').style.display='none'; });
 
 /* ---------- boot ---------- */
