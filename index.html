@@ -56,6 +56,29 @@
   #send{flex:0 0 auto;background:var(--teal);color:#fff;font-size:17px;font-weight:800;border:0;border-radius:22px;padding:11px 20px;}
   #send:active{background:var(--teal2);}
   #send:disabled{opacity:.5;}
+
+  /* ---------- 今日流程 ---------- */
+  header .plan-btn{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:14px;font-weight:800;padding:6px 11px;border-radius:10px;}
+  header .plan-btn:active{background:rgba(255,255,255,.34);}
+  #plan{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
+  #plan .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+  #plan .ph .t{font-size:17px;font-weight:800;}
+  #plan .ph .x{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:16px;font-weight:800;width:34px;height:34px;border-radius:10px;}
+  #plan .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(20px + env(safe-area-inset-bottom));}
+  .seg{background:#fff;border:1px solid #e4efec;border-radius:14px;margin-bottom:12px;overflow:hidden;}
+  .seg>.sh{display:flex;align-items:center;gap:8px;padding:13px 14px;font-size:16px;font-weight:800;}
+  .seg>.sh .chev{color:#9bb0ab;transition:transform .2s;}
+  .seg.open>.sh .chev{transform:rotate(90deg);}
+  .seg>.sh .now{font-size:11px;font-weight:800;color:#fff;background:var(--coral);padding:2px 7px;border-radius:6px;}
+  .seg>.sh .cnt{margin-left:auto;font-size:13px;font-weight:800;color:var(--teal2);background:#eef7f5;padding:3px 10px;border-radius:20px;}
+  .seg .items{display:none;padding:0 8px 6px;}
+  .seg.open .items{display:block;}
+  .it{display:flex;gap:11px;align-items:flex-start;padding:10px 8px;border-top:1px solid #f0f5f3;}
+  .it .box{flex:0 0 auto;width:24px;height:24px;border-radius:7px;border:2px solid #cfe0db;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;}
+  .it.done .box{background:var(--teal);border-color:var(--teal);}
+  .it .tx{font-size:15.5px;line-height:1.45;}
+  .it.done .tx{color:#9aa8a4;text-decoration:line-through;}
+  #plan .tip{font-size:12px;color:#8a9894;text-align:center;padding:2px 10px 12px;}
 </style>
 </head>
 <body>
@@ -63,12 +86,13 @@
   <header>
     <img src="apple-touch-icon.png" alt="IMG">
     <div class="ttl">店員助手</div>
+    <button class="plan-btn" id="planBtn">📋 今日</button>
     <div class="badge" id="badge"></div>
   </header>
   <div id="notice"></div>
   <div id="msgs"></div>
   <footer>
-    <textarea id="q" rows="1" placeholder="打你想問嘅嘢…" enterkeyhint="send"></textarea>
+    <textarea id="q" rows="1" placeholder="打你想問嘅嘂…" enterkeyhint="send"></textarea>
     <button id="send">問</button>
   </footer>
 </div>
@@ -84,6 +108,12 @@
     <button class="go" id="g_go">開始用</button>
     <div class="hint">每人一個碼，唔好借人。唔記得碼搵 Ivan。</div>
   </div>
+</div>
+
+<div id="plan">
+  <div class="ph"><div class="t">📋 今日流程</div><button class="x" id="planClose">✕</button></div>
+  <div class="body" id="planBody"></div>
+  <div class="tip">打勾淨係方便你自己記住，每日自動清。</div>
 </div>
 
 <script>
@@ -149,7 +179,7 @@ async function send(){
     setTimeout(function(){ showGate('登入碼過期或者停咗，麻煩再入一次。'); }, 800);
     return;
   }
-  addBubble(reply||'（暫時冇回覆，試多次）','bot');
+  addBubble(reply||'（暫時内回覆，試多次）','bot');
 }
 
 function autolimit(){ qEl.style.height='auto'; qEl.style.height=Math.min(qEl.scrollHeight,120)+'px'; }
@@ -168,13 +198,13 @@ function hideGate(){ document.getElementById('gate').style.display='none'; }
 async function tryLogin(){
   var pw=document.getElementById('pin').value.trim();
   var err=document.getElementById('g_err');
-  if(!pw){ err.textContent='入你唅登入碼'; return; }
+  if(!pw){ err.textContent='入你嘅登入碼'; return; }
   err.textContent='檢查緊…';
   var go=document.getElementById('g_go'); go.disabled=true;
   var r=await jsonp({login:'1', code:pw});
   go.disabled=false;
   if(r&&(r.error||r.timeout)){ err.textContent='網絡唔通，再試一次'; return; }
-  if(!r || !r.ok){ err.textContent='登入碼唔啥，搵 Ivan 攞返'; return; }
+  if(!r || !r.ok){ err.textContent='登入碼唔啱，搵 Ivan 攞返'; return; }
   PIN=pw; NAME=r.name||''; STORE=r.store||'';
   LS.setItem('img_pin',pw); LS.setItem('img_name',NAME); LS.setItem('img_store',STORE);
   startChat(true);
@@ -188,6 +218,71 @@ function startChat(fresh){
   if(fresh){ msgs.innerHTML=''; greet(); }
   loadNotice();
 }
+
+/* ---------- 今日流程 checklist ---------- */
+var PLAN=[
+  { key:'open', title:'☀️ 開舖', from:10, to:13, items:[
+    '打卡 in（Infotech）',
+    '開冷氣、開晒燈',
+    '開銀箱點 float $2000 → 影相上 Drive（對唔到即搵經理，唔好自補）',
+    '開沖機 + 掃描儀',
+    '貓：鏟砂、加糧、換水',
+    '補菲林 display（每款 4 卷）、補電池',
+    '12:00 翻牌「營業中」、開門',
+    '影店相上 Drive、覆 email / WhatsApp / IG DM',
+    'IG story ≥ 4（tag 分店）',
+    '試機片 ≥ 3'
+  ]},
+  { key:'day', title:'🕑 日中', from:13, to:19, items:[
+    '客入店 3 秒內招呼',
+    'email / WhatsApp / IG 每 2 鐘 check',
+    '網單 check（早 / 午 / 晚）',
+    'IG story 夠 4、試機片夠 3',
+    '貓每 2 鐘睇水糧',
+    '收銀跟 POS、折扣要 reason code',
+    '慢時段：補貨、清潔、執沖印 backlog'
+  ]},
+  { key:'close', title:'🌙 收舖', from:19, to:24, items:[
+    '19:30 填 Sales Target',
+    '橙機日結、黑機（AE）日結',
+    '20:00 翻牌關閉、鎖門（唔可早收）',
+    'POS 點錢箱對數（差 >$200 即搵經理）→ 留 $2000、餘額入錢袋',
+    '影 4 張相 send WhatsApp「Imageplayground Shop」',
+    '沖機支架泡水、關掃描儀、logout POS、關卡機叉電',
+    '貓：糧水、清砂、開風扇',
+    '執舖、倒垃圾',
+    '巡舖鎖玻璃櫃、關燈、打卡 out、鎖門'
+  ]}
+];
+function today_(){ var d=new Date(); return ''+d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2); }
+function pkey_(seg,idx){ return 'img_plan_'+today_()+'_'+seg+'_'+idx; }
+function curSeg_(){ var h=new Date().getHours(); for(var i=0;i<PLAN.length;i++){ if(h>=PLAN[i].from && h<PLAN[i].to) return PLAN[i].key; } return 'day'; }
+function renderPlan(){
+  var cur=curSeg_(); var body=document.getElementById('planBody'); body.innerHTML='';
+  PLAN.forEach(function(seg){
+    var done=0; seg.items.forEach(function(_,i){ if(LS.getItem(pkey_(seg.key,i))==='1') done++; });
+    var wrap=document.createElement('div'); wrap.className='seg'+(seg.key===cur?' open':'');
+    var sh=document.createElement('div'); sh.className='sh';
+    sh.innerHTML='<span class="chev">▶</span><span>'+seg.title+'</span>'+(seg.key===cur?'<span class="now">而家</span>':'')+'<span class="cnt">'+done+'/'+seg.items.length+'</span>';
+    sh.onclick=function(){ wrap.classList.toggle('open'); };
+    wrap.appendChild(sh);
+    var items=document.createElement('div'); items.className='items';
+    seg.items.forEach(function(txt,i){
+      var on=LS.getItem(pkey_(seg.key,i))==='1';
+      var it=document.createElement('div'); it.className='it'+(on?' done':'');
+      it.innerHTML='<div class="box">'+(on?'✓':'')+'</div><div class="tx">'+esc(txt)+'</div>';
+      it.onclick=function(){
+        var now=LS.getItem(pkey_(seg.key,i))==='1';
+        if(now){ LS.removeItem(pkey_(seg.key,i)); } else { LS.setItem(pkey_(seg.key,i),'1'); }
+        renderPlan();
+      };
+      items.appendChild(it);
+    });
+    wrap.appendChild(items); body.appendChild(wrap);
+  });
+}
+document.getElementById('planBtn').addEventListener('click', function(){ renderPlan(); document.getElementById('plan').style.display='flex'; });
+document.getElementById('planClose').addEventListener('click', function(){ document.getElementById('plan').style.display='none'; });
 
 /* ---------- boot ---------- */
 if(PIN && NAME){ startChat(true); }
