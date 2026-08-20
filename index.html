@@ -95,11 +95,11 @@
   header .badge{max-width:32vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   header .recv-btn{background:rgba(255,255,255,.2);border:0;color:#fff;font-size:14px;font-weight:800;padding:6px 11px;border-radius:10px;white-space:nowrap;}
   header .recv-btn:active{background:rgba(255,255,255,.34);}
-  #recv{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
-  #recv .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
-  #recv .ph .t{font-size:17px;font-weight:800;}
-  #recv .ph .x{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:16px;font-weight:800;width:34px;height:34px;border-radius:10px;}
-  #recv .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(20px + env(safe-area-inset-bottom));}
+  #recv,#brk{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
+  #recv .ph,#brk .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+  #recv .ph .t,#brk .ph .t{font-size:17px;font-weight:800;}
+  #recv .ph .x,#brk .ph .x{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:16px;font-weight:800;width:34px;height:34px;border-radius:10px;}
+  #recv .body,#brk .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(20px + env(safe-area-inset-bottom));}
   .rv-intro{font-size:13px;line-height:1.55;color:#5b6b68;background:#fff7ec;border:1px solid #f0dcc0;border-radius:12px;padding:11px 13px;margin-bottom:12px;}
   .rv-intro b{color:var(--coral);}
   .rv-card{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:13px 14px;margin-bottom:11px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
@@ -141,6 +141,7 @@
     <div class="ttl">店員助手</div>
     <button class="plan-btn" id="planBtn">📋 今日</button>
     <button class="recv-btn" id="recvBtn">📦 收貨</button>
+    <button class="recv-btn" id="brkBtn">🔧 壞機</button>
     <div class="badge" id="badge"></div>
   </header>
   <div id="notice"></div>
@@ -174,6 +175,25 @@
 <div id="recv">
   <div class="ph"><div class="t">📦 收貨</div><button class="x" id="recvClose">✕</button></div>
   <div class="body" id="recvBody"></div>
+</div>
+
+<div id="brk">
+  <div class="ph"><div class="t">🔧 報壞機（在庫）</div><button class="x" id="brkClose">✕</button></div>
+  <div class="body">
+    <div class="rv-intro">店入面部機用下先發現<b>壞咗</b>？喺度報。<b>Serial 一定要填</b>，影相更好（影機身 + serial 位）。報咗 Ivan 會睇，佢批咗先落架 —— 你唔使自己改 Shopify。</div>
+    <div class="rv-card">
+      <div class="rv-lb">邊部機（型號 / 名）？</div>
+      <input class="rv-in" id="brkModel" placeholder="例：Yashica T AF-D">
+      <div class="rv-lb" style="margin-top:12px;">機身 Serial</div>
+      <input class="rv-in" id="brkSerial" placeholder="例：SN12345">
+      <div class="rv-lb" style="margin-top:12px;">壞成點</div>
+      <select class="rv-sel" id="brkCond"><option value="">揀一個</option><option value="快門／過片問題">快門／過片問題</option><option value="對焦／鏡頭問題">對焦／鏡頭問題</option><option value="測光／電子問題">測光／電子問題</option><option value="外殼／機械損">外殼／機械損</option><option value="入水／發霉">入水／發霉</option><option value="其他">其他（詳情寫低）</option></select>
+      <input class="rv-in" id="brkNote" placeholder="詳情（例：快門唔郁、對唔到焦）" style="margin-top:8px;">
+      <div class="rv-photo need" style="margin-top:12px;"><div class="rv-lb rv-photolb">壞機相（影機身 + serial 位）</div><input class="rv-file" id="brkFile" type="file" accept="image/*" capture="environment"><div class="rv-thumb" id="brkThumb"></div></div>
+      <button class="rv-sub" id="brkSub">提交報壞機</button>
+      <div id="brkRes"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -400,7 +420,7 @@ async function loadRecvList(){
     };
     document.getElementById('rvb'+idx).onclick=function(){ submitRecv(it, idx, this); };
     document.getElementById('rvcd'+idx).onchange=function(){ document.getElementById('rvpw'+idx).classList.toggle('need', this.value==='有問題／待檢'); };
-    document.getElementById('rvp'+idx).onchange=function(){ var file=this.files&&this.files[0]; if(!file) return; compressImg(file,1280,0.6).then(function(b64){ RECV_PHOTO[idx]=b64; document.getElementById('rvth'+idx).innerHTML=b64?'<img src="data:image/jpeg;base64,'+b64+'">':''; }); };
+    document.getElementById('rvp'+idx).onchange=function(){ var file=this.files&&this.files[0]; if(!file) return; compressImg(file,1000,0.5).then(function(b64){ RECV_PHOTO[idx]=b64; document.getElementById('rvth'+idx).innerHTML=b64?'<img src="data:image/jpeg;base64,'+b64+'">':''; }); };
   });
 }
 var RECV_PHOTO={};
@@ -419,14 +439,20 @@ function compressImg(file, maxW, q){
   });
 }
 function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
-async function uploadRecvPhoto(b64, uploadId){
-  try{ await fetch(API, {method:'POST', mode:'no-cors', body: JSON.stringify({code:PIN, id:uploadId, data:b64})}); }catch(e){}
-  for(var i=0;i<5;i++){
-    var r=await jsonp({photoget:'1', id:uploadId});
-    if(r && r.ok && r.url) return r.url;
-    await sleep(700);
+/* chunked JSONP GET 上傳（可靠：同全 app 一樣行 JSONP，唔行爛咗嘅 no-cors POST） */
+async function uploadPhoto(b64, serial, onprog){
+  if(!b64) return '';
+  var id='ph'+Date.now()+'_'+Math.floor(Math.random()*100000);
+  var CH=6000, n=Math.ceil(b64.length/CH);
+  for(var i=0;i<n;i++){
+    var part=b64.substr(i*CH, CH);
+    var r=await jsonp({photoput:'1', code:PIN, id:id, i:i, n:n, part:part});
+    if(!r || !r.ok){ r=await jsonp({photoput:'1', code:PIN, id:id, i:i, n:n, part:part}); }
+    if(!r || !r.ok) return '';
+    if(onprog) onprog(Math.round((i+1)/n*100));
   }
-  return '';
+  var done=await jsonp({photodone:'1', code:PIN, id:id, n:n, serial:serial||''});
+  return (done && done.ok && done.url) ? done.url : '';
 }
 async function submitRecv(it, idx, btn){
   var nEl=document.getElementById('rvn'+idx);
@@ -443,9 +469,7 @@ async function submitRecv(it, idx, btn){
   btn.disabled=true;
   var photoUrl='';
   if(broken && RECV_PHOTO[idx]){
-    btn.textContent='上載相…';
-    var uploadId='p'+Date.now()+'_'+idx+'_'+Math.floor(Math.random()*100000);
-    photoUrl=await uploadRecvPhoto(RECV_PHOTO[idx], uploadId);  // 盡力上傳;傳唔到都照交
+    photoUrl=await uploadPhoto(RECV_PHOTO[idx], serial, function(p){ btn.textContent='上載相 '+p+'%…'; });  // 盡力上傳;傳唔到都照交
   }
   btn.textContent='提交緊…';
   var r=await jsonp({receive:'1', code:PIN, row:it.row, po:it.po, blind:blind, serial:serial, acc:acc, broken:broken?'1':'0', cond:cond, photo:photoUrl});
@@ -467,6 +491,47 @@ async function submitRecv(it, idx, btn){
 }
 document.getElementById('recvBtn').addEventListener('click', recvOpen);
 document.getElementById('recvClose').addEventListener('click', recvClose);
+
+/* ---------- 在庫機轉壞機 ---------- */
+var BRK_PHOTO='';
+function brkOpen(){ document.getElementById('brk').style.display='flex'; }
+function brkClose(){ document.getElementById('brk').style.display='none'; }
+function brkReset(){
+  BRK_PHOTO='';
+  document.getElementById('brkModel').value='';
+  document.getElementById('brkSerial').value='';
+  document.getElementById('brkCond').value='';
+  document.getElementById('brkNote').value='';
+  document.getElementById('brkThumb').innerHTML='';
+  document.getElementById('brkRes').innerHTML='';
+  var b=document.getElementById('brkSub'); b.disabled=false; b.style.display='block'; b.textContent='提交報壞機';
+}
+document.getElementById('brkFile').onchange=function(){
+  var file=this.files&&this.files[0]; if(!file) return;
+  compressImg(file,1000,0.5).then(function(b64){ BRK_PHOTO=b64; document.getElementById('brkThumb').innerHTML=b64?'<img src="data:image/jpeg;base64,'+b64+'">':''; });
+};
+async function submitBrk(btn){
+  var model=(document.getElementById('brkModel').value||'').trim();
+  var serial=(document.getElementById('brkSerial').value||'').trim();
+  var cond=(document.getElementById('brkCond').value||'').trim();
+  var note=(document.getElementById('brkNote').value||'').trim();
+  var res=document.getElementById('brkRes');
+  if(!model){ res.innerHTML='<div class="rv-res diff">填返部機係咩型號／名先得。</div>'; document.getElementById('brkModel').focus(); return; }
+  if(!serial){ res.innerHTML='<div class="rv-res broken">壞機一定要填 <b>serial</b> 先報得。</div>'; document.getElementById('brkSerial').focus(); return; }
+  var reason=(cond?cond:'')+(note?(cond?'：':'')+note:'');
+  btn.disabled=true;
+  var photoUrl='';
+  if(BRK_PHOTO){ photoUrl=await uploadPhoto(BRK_PHOTO, serial, function(p){ btn.textContent='上載相 '+p+'%…'; }); }
+  btn.textContent='提交緊…';
+  var r=await jsonp({breakstock:'1', code:PIN, model:model, serial:serial, cond:reason, photo:photoUrl});
+  if(!r || !r.ok){ btn.disabled=false; btn.textContent='提交報壞機'; res.innerHTML='<div class="rv-res diff">交唔到，網絡唔穩定，再試一次 🙏</div>'; return; }
+  btn.style.display='none';
+  res.innerHTML='<div class="rv-res broken">⚠️ 已報壞機（'+esc(model)+' · serial '+esc(serial)+'）'+(photoUrl?' + 相':'')+'。已入紀錄，Ivan 會喺朝早 brief 見到，佢批咗先落架。你唔使自己改 Shopify。</div>';
+  setTimeout(brkReset, 3200);
+}
+document.getElementById('brkBtn').addEventListener('click', brkOpen);
+document.getElementById('brkClose').addEventListener('click', brkClose);
+document.getElementById('brkSub').addEventListener('click', function(){ submitBrk(this); });
 
 /* ---------- boot ---------- */
 if(PIN && NAME){ startChat(true); }
