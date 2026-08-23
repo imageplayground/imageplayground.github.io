@@ -20,19 +20,37 @@
   /* ---------- GATE ---------- */
   #gate{position:fixed;inset:0;z-index:20;background:linear-gradient(165deg,#4cc0b0,#40B5A5 52%,#2f8f82);
         display:flex;flex-direction:column;align-items:center;justify-content:center;
-        padding:24px calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));gap:14px;}
-  #gate .logo{width:96px;height:96px;border-radius:24px;background:#fff;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.24);}
-  #gate h1{color:#fff;font-size:21px;font-weight:800;margin:6px 0 2px;letter-spacing:.5px;}
-  #gate .sub{color:#eafff9;font-size:13px;margin-bottom:8px;opacity:.9;text-align:center;}
-  .card{width:100%;max-width:320px;background:#fff;border-radius:18px;padding:18px 16px;box-shadow:0 14px 34px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:12px;}
+        padding:24px calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));gap:14px;overflow-y:auto;}
+  #gate .logo{flex:0 0 auto;width:104px;height:104px;border-radius:24px;background:#fff;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.24);}
+  #gate h1{flex:0 0 auto;color:#fff;font-size:24px;font-weight:800;margin:6px 0 2px;letter-spacing:.5px;}
+  #gate .sub{flex:0 0 auto;color:#eafff9;font-size:14px;margin-bottom:8px;opacity:.9;text-align:center;}
+  .card{width:100%;max-width:390px;flex:0 0 auto;background:#fff;border-radius:18px;padding:18px 16px;box-shadow:0 14px 34px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:12px;}
   .card label{font-size:12px;color:#5b6b68;margin:2px 2px -6px;}
-  #pin{width:100%;font-size:26px;letter-spacing:8px;text-align:center;padding:14px;border:1.5px solid #d7e4e0;border-radius:12px;background:#fbfdfc;color:var(--ink);font-weight:700;}
+  #pin{width:100%;font-size:30px;letter-spacing:8px;text-align:center;padding:14px;border:1.5px solid #d7e4e0;border-radius:12px;background:#fbfdfc;color:var(--ink);font-weight:700;}
   #pin:focus{outline:none;border-color:var(--teal);}
   .go{background:var(--teal);color:#fff;font-size:18px;font-weight:800;border:0;border-radius:12px;padding:14px;margin-top:2px;}
   .go:active{background:var(--teal2);}
   .go:disabled{opacity:.55;}
   .err{color:var(--coral);font-size:13px;min-height:16px;text-align:center;}
   .hint{color:#7d8c88;font-size:12px;text-align:center;margin-top:-2px;}
+
+  #pick{position:fixed;inset:0;z-index:30;background:rgba(14,60,54,.55);display:none;
+        align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);}
+  #pick.on{display:flex;}
+  .pk-box{width:100%;max-width:390px;background:#fff;border-radius:18px;padding:20px 18px;
+          box-shadow:0 18px 40px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:10px;}
+  .pk-t{font-size:21px;font-weight:800;color:var(--ink);text-align:center;}
+  .pk-s{font-size:13px;color:#7d8c88;text-align:center;margin-bottom:4px;}
+  .pk-b{font-size:20px;font-weight:800;color:#fff;background:var(--teal);border:0;border-radius:14px;padding:16px;}
+  .pk-b:active{background:var(--teal2);}
+  .pk-n{font-size:12px;color:#93a29e;text-align:center;margin-top:2px;}
+  @media (max-width:470px){
+    header .ttl{display:none;}
+    header img{width:30px;height:30px;}
+    header .badge{font-size:13px;padding:5px 9px;max-width:none;white-space:nowrap;}
+    header button.plan-btn, header button.recv-btn, header button.brk-btn{padding:6px 9px;font-size:14px;}
+  }
+  header .badge.tapin{background:rgba(255,255,255,.34);}
 
   /* ---------- CHAT ---------- */
   header{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;
@@ -125,6 +143,8 @@
   .rv-sub:disabled{opacity:.5;}
   .rv-res{margin-top:12px;border-radius:12px;padding:13px 14px;font-size:15px;line-height:1.55;}
   .rv-res.ok{background:linear-gradient(120deg,#eafaf6,#dff5ef);border:1px solid #bfe6da;color:#1f6b5c;}
+  .rv-act{margin:8px 0;padding:8px 10px;background:#fff;border:1px solid #f0c9bd;border-radius:8px;line-height:1.6;}
+  .rv-act>div{margin-top:3px;}
   .rv-res.diff{background:#fff3f1;border:1px solid #f3c9c2;color:#b23a28;}
   .rv-res.broken{background:#fff3f1;border:1px solid #f3c9c2;color:#b23a28;}
   .rv-photo{display:none;margin-top:10px;padding:10px;border:1px dashed #e6c9c2;border-radius:10px;}
@@ -196,10 +216,23 @@
   </div>
 </div>
 
+<div id="pick">
+  <div class="pk-box">
+    <div class="pk-t">你今日喺邊間舖？</div>
+    <div class="pk-s">揀咗先入到嗰間舖嘅收貨清單</div>
+    <button class="pk-b" data-s="旺角">旺角</button>
+    <button class="pk-b" data-s="中環">中環</button>
+    <button class="pk-b" data-s="銅鑼灣">銅鑼灣</button>
+    <div class="pk-n">揀錯咗？頭部撳「換」就改得返。</div>
+  </div>
+</div>
 <script>
 var API='https://script.google.com/macros/s/AKfycbyvoP33UIINAsBdm5X0FXTq0Qp6sFcvYshJOKyzziASDqjiyDV_Q3yxWn1GlRAMQOQY/exec';
 var LS=window.localStorage;
 var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.getItem('img_store')||'';
+var PICKED=LS.getItem('img_picked')==='1';
+function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
+if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -210,6 +243,7 @@ function jsonp(params){
     var s=document.createElement('script');
     var done=false;
     window[cb]=function(d){ done=true; try{delete window[cb];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); resolve(d); };
+    if(STORE && !params.store) params.store=STORE;
     var qs=Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
     s.src=API+'?'+qs+'&callback='+cb;
     s.onerror=function(){ if(!done){done=true; if(s.parentNode)s.parentNode.removeChild(s); resolve({error:1});} };
@@ -286,15 +320,40 @@ async function tryLogin(){
   if(r&&(r.error||r.timeout)){ err.textContent='網絡唔通，再試一次'; return; }
   if(!r || !r.ok){ err.textContent='登入碼唔啱，搵 Ivan 攞返'; return; }
   PIN=pw; NAME=r.name||''; STORE=r.store||'';
+  PICKED = !STORE;
   LS.setItem('img_pin',pw); LS.setItem('img_name',NAME); LS.setItem('img_store',STORE);
+  LS.setItem('img_picked', PICKED?'1':'0');
+  if(PICKED){ hideGate(); openPick(true); return; }
   startChat(true);
 }
 document.getElementById('g_go').addEventListener('click', tryLogin);
 document.getElementById('pin').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); tryLogin(); } });
 
+var PICK_FRESH=false;
+function openPick(fresh){ PICK_FRESH=!!fresh; document.getElementById('pick').classList.add('on'); }
+function closePick(){ document.getElementById('pick').classList.remove('on'); }
+Array.prototype.forEach.call(document.querySelectorAll('.pk-b'), function(b){
+  b.addEventListener('click', function(){
+    STORE=b.getAttribute('data-s');
+    LS.setItem('img_store',STORE);
+    LS.setItem('img_store_day',hkDay());
+    LS.setItem('img_picked','1');
+    PICKED=true;
+    closePick();
+    startChat(PICK_FRESH);
+  });
+});
+
 function startChat(fresh){
   hideGate();
-  document.getElementById('badge').textContent=(STORE?STORE+' · ':'')+NAME;
+  var bd=document.getElementById('badge');
+  bd.textContent = STORE || NAME;
+  bd.title = (STORE?STORE+' · ':'')+NAME;
+  if(PICKED){
+    bd.textContent = (STORE||NAME) + ' \u25be';
+    bd.classList.add('tapin');
+    if(!bd.dataset.bound){ bd.dataset.bound='1'; bd.addEventListener('click', function(){ openPick(false); }); }
+  }
   if(fresh){ msgs.innerHTML=''; greet(); }
   loadNotice();
 }
@@ -486,7 +545,12 @@ async function submitRecv(it, idx, btn){
     res.innerHTML='<div class="rv-res ok">✓ 收貨完成，數啱晒（'+r.blind+' '+esc(it.unit||'件')+'）。已入紀錄，唔使再搞。</div>';
     setTimeout(loadRecvList, 2600);
   } else {
-    res.innerHTML='<div class="rv-res diff">⚠️ 數唔夾：你數到 <b>'+r.blind+'</b>，PO 應該係 <b>'+r.expect+'</b>。<br>麻煩再數一次；如果真係唔同，即刻同 Ivan／經理講，佢哋會跟。已經幫你入咗紀錄。</div>';
+    res.innerHTML='<div class="rv-res diff">⚠️ 數唔夾：你數到 <b>'+r.blind+'</b>，PO 應該係 <b>'+r.expect+'</b>。'
+      +'<div class="rv-act"><b>而家即刻做（送貨嗰位仲喺度先做得到）：</b>'
+      +'<div>① <b>唔好畀佢走先</b> —— 同佢一齊再數一次</div>'
+      +'<div>② 真係少咗 → 叫佢喺送貨單寫低「實收 '+r.blind+'」+ 簽名，你影張相</div>'
+      +'<div>③ 送貨單影咗相就得，唔使再做嘢</div>'
+      +'</div>已經幫你入咗紀錄，Ivan 今朝會見到，佢會跟供應商。<b>唔係你嘅錯。</b></div>';
   }
 }
 document.getElementById('recvBtn').addEventListener('click', recvOpen);
@@ -534,7 +598,8 @@ document.getElementById('brkClose').addEventListener('click', brkClose);
 document.getElementById('brkSub').addEventListener('click', function(){ submitBrk(this); });
 
 /* ---------- boot ---------- */
-if(PIN && NAME){ startChat(true); }
+if(PIN && NAME && !STORE && PICKED){ showGate(''); hideGate(); openPick(true); }
+else if(PIN && NAME){ startChat(true); }
 else { showGate(''); }
 </script>
 </body>
