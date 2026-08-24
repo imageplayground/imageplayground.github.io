@@ -1,0 +1,850 @@
+<!DOCTYPE html><!--APPVER:2026-08-24-01-->
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="IMG 店員助手">
+<meta name="theme-color" content="#40B5A5">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="apple-touch-icon.png">
+<title>IMG 店員助手</title>
+<style>
+  :root{ --teal:#40B5A5; --teal2:#2f8f82; --coral:#E05B48; --bg:#f3f8f6; --ink:#1f2a28; }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang HK","Helvetica Neue",sans-serif;background:var(--bg);color:var(--ink);overflow:hidden;}
+  #app{position:fixed;inset:0;display:flex;flex-direction:column;}
+
+  /* ---------- GATE ---------- */
+  #gate{position:fixed;inset:0;z-index:20;background:linear-gradient(165deg,#4cc0b0,#40B5A5 52%,#2f8f82);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        padding:24px calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));gap:14px;overflow-y:auto;}
+  #gate .logo{flex:0 0 auto;width:104px;height:104px;border-radius:24px;background:#fff;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.24);}
+  #gate h1{flex:0 0 auto;color:#fff;font-size:24px;font-weight:800;margin:6px 0 2px;letter-spacing:.5px;}
+  #gate .sub{flex:0 0 auto;color:#eafff9;font-size:14px;margin-bottom:8px;opacity:.9;text-align:center;}
+  .card{width:100%;max-width:390px;flex:0 0 auto;background:#fff;border-radius:18px;padding:18px 16px;box-shadow:0 14px 34px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:12px;}
+  .card label{font-size:12px;color:#5b6b68;margin:2px 2px -6px;}
+  #pin{width:100%;font-size:30px;letter-spacing:8px;text-align:center;padding:14px;border:1.5px solid #d7e4e0;border-radius:12px;background:#fbfdfc;color:var(--ink);font-weight:700;}
+  #pin:focus{outline:none;border-color:var(--teal);}
+  .go{background:var(--teal);color:#fff;font-size:18px;font-weight:800;border:0;border-radius:12px;padding:14px;margin-top:2px;}
+  .go:active{background:var(--teal2);}
+  .go:disabled{opacity:.55;}
+  .err{color:var(--coral);font-size:13px;min-height:16px;text-align:center;}
+  .hint{color:#7d8c88;font-size:12px;text-align:center;margin-top:-2px;}
+
+  #me{position:fixed;inset:0;z-index:31;background:rgba(14,60,54,.5);display:none;
+      align-items:flex-end;justify-content:center;padding:16px;backdrop-filter:blur(2px);}
+  #me.on{display:flex;}
+  .me-box{width:100%;max-width:390px;background:#fff;border-radius:20px;padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+          display:flex;flex-direction:column;gap:9px;box-shadow:0 -6px 34px rgba(0,0,0,.26);}
+  .me-who{font-size:20px;font-weight:900;text-align:center;color:var(--ink);}
+  .me-store{font-size:14px;color:#7d8c88;text-align:center;margin-bottom:6px;}
+  .me-b{font-size:18px;font-weight:800;border:0;border-radius:14px;padding:15px;
+        background:#eef6f4;color:var(--teal2);}
+  .me-b:active{background:#e0efeb;}
+  .me-b.out{background:var(--coral);color:#fff;}
+  .me-b.ghost{background:transparent;color:#8a9894;font-size:16px;font-weight:700;padding:10px;}
+  #pick{position:fixed;inset:0;z-index:30;background:rgba(14,60,54,.55);display:none;
+        align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);}
+  #pick.on{display:flex;}
+  .pk-box{width:100%;max-width:390px;background:#fff;border-radius:18px;padding:20px 18px;
+          box-shadow:0 18px 40px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:10px;}
+  .pk-t{font-size:21px;font-weight:800;color:var(--ink);text-align:center;}
+  .pk-s{font-size:13px;color:#7d8c88;text-align:center;margin-bottom:4px;}
+  .pk-b{font-size:20px;font-weight:800;color:#fff;background:var(--teal);border:0;border-radius:14px;padding:16px;}
+  .pk-b:active{background:var(--teal2);}
+  .pk-n{font-size:12px;color:#93a29e;text-align:center;margin-top:2px;}
+  @media (max-width:470px){
+    header .ttl{display:none;}
+    header img{width:30px;height:30px;}
+    header .badge{font-size:13px;padding:5px 9px;max-width:none;white-space:nowrap;}
+    header{gap:7px;}
+    header button.plan-btn, header button.recv-btn, header button.brk-btn{padding:6px 10px;font-size:17px;}
+    header .bt{display:none;}
+    header .badge{flex:0 0 auto;}
+  }
+  header .badge.tapin{background:rgba(255,255,255,.34);}
+
+  /* ---------- CHAT ---------- */
+  header{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;
+         padding:calc(10px + env(safe-area-inset-top)) 14px 10px;flex:0 0 auto;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+  header img{width:34px;height:34px;border-radius:9px;background:#fff;padding:3px;}
+  header .ttl{font-size:17px;font-weight:800;}
+  header .badge{margin-left:auto;background:rgba(255,255,255,.22);color:#fff;font-size:13px;font-weight:700;padding:5px 11px;border-radius:20px;}
+  #notice{background:#fff7ec;color:#8a5a1a;border-bottom:1px solid #f0dcc0;font-size:14px;line-height:1.5;padding:10px 14px;display:none;}
+  #notice b{color:var(--coral);}
+  #msgs{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 12px 6px;display:flex;flex-direction:column;gap:10px;}
+  .row{display:flex;}
+  .row.me{justify-content:flex-end;}
+  .bub{max-width:82%;font-size:18px;line-height:1.5;padding:11px 14px;border-radius:18px;white-space:pre-wrap;word-break:break-word;}
+  .bot .bub{background:#fff;border:1px solid #e4efec;border-bottom-left-radius:5px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .me .bub{background:var(--teal);color:#fff;border-bottom-right-radius:5px;}
+  .typing .bub{color:#8aa19c;font-style:italic;}
+  footer{flex:0 0 auto;display:flex;gap:8px;align-items:flex-end;padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+          background:#fff;border-top:1px solid #e7efec;}
+  #q{flex:1;font-size:17px;line-height:1.4;padding:11px 14px;border:1.5px solid #d7e4e0;border-radius:22px;background:#fbfdfc;max-height:120px;resize:none;}
+  #q:focus{outline:none;border-color:var(--teal);}
+  #send{flex:0 0 auto;background:var(--teal);color:#fff;font-size:17px;font-weight:800;border:0;border-radius:22px;padding:11px 20px;}
+  #send:active{background:var(--teal2);}
+  #send:disabled{opacity:.5;}
+
+  /* ---------- 今日流程 ---------- */
+  header .plan-btn{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:14px;font-weight:800;padding:6px 11px;border-radius:10px;white-space:nowrap;}
+  header .plan-btn:active{background:rgba(255,255,255,.34);}
+  #plan{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
+  #plan .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+  #plan .ph .t{font-size:17px;font-weight:800;}
+  #plan .ph .x{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:16px;font-weight:800;width:34px;height:34px;border-radius:10px;}
+  #plan .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(20px + env(safe-area-inset-bottom));}
+  .seg{background:#fff;border:1px solid #e4efec;border-radius:14px;margin-bottom:12px;overflow:hidden;}
+  .seg>.sh{display:flex;align-items:center;gap:8px;padding:13px 14px;font-size:16px;font-weight:800;}
+  .seg>.sh .chev{color:#9bb0ab;transition:transform .2s;}
+  .seg.open>.sh .chev{transform:rotate(90deg);}
+  .seg>.sh .now{font-size:11px;font-weight:800;color:#fff;background:var(--coral);padding:2px 7px;border-radius:6px;}
+  .seg>.sh .cnt{margin-left:auto;font-size:13px;font-weight:800;color:var(--teal2);background:#eef7f5;padding:3px 10px;border-radius:20px;}
+  .seg .items{display:none;padding:0 8px 6px;}
+  .seg.open .items{display:block;}
+  .it{display:flex;gap:11px;align-items:flex-start;padding:10px 8px;border-top:1px solid #f0f5f3;}
+  .it .box{flex:0 0 auto;width:24px;height:24px;border-radius:7px;border:2px solid #cfe0db;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;}
+  .it.done .box{background:var(--teal);border-color:var(--teal);}
+  .it .tx{font-size:15.5px;line-height:1.45;}
+  .it.done .tx{color:#9aa8a4;text-decoration:line-through;}
+  #plan .tip{font-size:12px;color:#8a9894;text-align:center;padding:2px 10px 12px;}
+  .kpi{padding:10px 12px 0;}
+  .kpi-in{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e4efec;border-radius:14px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .kpi-in.hit{background:linear-gradient(120deg,#eafaf6,#dff5ef);border-color:#bfe6da;}
+  .kpi-ic{font-size:22px;}
+  .kpi-tx{font-size:15px;font-weight:800;color:var(--ink);}
+  .kpi-num{margin-left:auto;font-size:26px;font-weight:800;color:var(--teal2);line-height:1;}
+  .kpi-in.hit .kpi-num{color:var(--teal);}
+  .kpi-tg{font-size:12px;font-weight:800;color:#9aa8a4;background:#f2f7f5;padding:3px 9px;border-radius:20px;}
+  .kpi-sub{font-size:11px;color:#9aa8a4;padding:5px 4px 0;text-align:center;}
+
+  /* ---------- 收貨 receiving ---------- */
+  header{gap:8px;}
+  header .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  header .badge{max-width:32vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  header .recv-btn{background:rgba(255,255,255,.2);border:0;color:#fff;font-size:14px;font-weight:800;padding:6px 11px;border-radius:10px;white-space:nowrap;}
+  header .recv-btn:active{background:rgba(255,255,255,.34);}
+  #recv,#brk,#promo,#esc{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
+  #recv .ph,#brk .ph,#promo .ph,#esc .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+  #recv .ph .t,#brk .ph .t,#promo .ph .t,#esc .ph .t{font-size:17px;font-weight:800;}
+  #recv .ph .x,#brk .ph .x,#promo .ph .x,#esc .ph .x{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:16px;font-weight:800;width:34px;height:34px;border-radius:10px;}
+  #recv .body,#brk .body,#promo .body,#esc .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(20px + env(safe-area-inset-bottom));}
+  .rv-intro{font-size:13px;line-height:1.55;color:#5b6b68;background:#fff7ec;border:1px solid #f0dcc0;border-radius:12px;padding:11px 13px;margin-bottom:12px;}
+  .rv-intro b{color:var(--coral);}
+  .rv-card{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:13px 14px;margin-bottom:11px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .rv-prod{font-size:16px;font-weight:800;color:var(--ink);line-height:1.35;}
+  .rv-meta{font-size:12px;color:#8a9894;margin-top:5px;}
+  .rv-meta span{margin-right:10px;white-space:nowrap;}
+  .rv-open{margin-top:11px;width:100%;background:var(--teal);color:#fff;font-size:15px;font-weight:800;border:0;border-radius:10px;padding:11px;}
+  .rv-open:active{background:var(--teal2);}
+  .rv-empty{text-align:center;color:#9aa8a4;font-size:14px;padding:34px 20px;line-height:1.7;}
+  .rv-form{margin-top:12px;border-top:1px dashed #dbe7e3;padding-top:12px;display:none;}
+  .rv-form.open{display:block;}
+  .rv-lb{font-size:13px;font-weight:800;color:#5b6b68;margin:0 2px 5px;}
+  .rv-cnt{width:100%;font-size:24px;font-weight:800;text-align:center;letter-spacing:2px;padding:12px;border:1.5px solid #d7e4e0;border-radius:12px;background:#fbfdfc;color:var(--ink);}
+  .rv-cnt:focus{outline:none;border-color:var(--teal);}
+  .rv-more{margin-top:12px;}
+  .rv-more summary{font-size:13px;font-weight:800;color:var(--teal2);cursor:pointer;list-style:none;padding:6px 2px;}
+  .rv-more summary::-webkit-details-marker{display:none;}
+  .rv-in{width:100%;font-size:16px;padding:11px 12px;border:1.5px solid #d7e4e0;border-radius:10px;background:#fbfdfc;color:var(--ink);margin-top:6px;}
+  .rv-in:focus{outline:none;border-color:var(--teal);}
+  .rv-sel{width:100%;font-size:16px;padding:11px 12px;border:1.5px solid #d7e4e0;border-radius:10px;background:#fbfdfc;color:var(--ink);margin-top:6px;}
+  .rv-sub{margin-top:14px;width:100%;background:var(--coral);color:#fff;font-size:16px;font-weight:800;border:0;border-radius:11px;padding:13px;}
+  .rv-sub:active{opacity:.85;}
+  .rv-sub:disabled{opacity:.5;}
+  .rv-res{margin-top:12px;border-radius:12px;padding:13px 14px;font-size:15px;line-height:1.55;}
+  .rv-res.ok{background:linear-gradient(120deg,#eafaf6,#dff5ef);border:1px solid #bfe6da;color:#1f6b5c;}
+  .rv-act{margin:8px 0;padding:8px 10px;background:#fff;border:1px solid #f0c9bd;border-radius:8px;line-height:1.6;}
+  .rv-act>div{margin-top:3px;}
+  .rv-res.diff{background:#fff3f1;border:1px solid #f3c9c2;color:#b23a28;}
+  .rv-res.broken{background:#fff3f1;border:1px solid #f3c9c2;color:#b23a28;}
+  .rv-photo{display:none;margin-top:10px;padding:10px;border:1px dashed #e6c9c2;border-radius:10px;}
+  .rv-photo.need{display:block;background:#fff6f4;}
+  .rv-photolb{color:#b23a28;margin-bottom:6px;}
+  /* ---------- 交上司 ---------- */
+  #escbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 12px 0;}
+  #escbar .t{font-size:12.5px;color:#8a9a96;}
+  #escbar button{margin-left:auto;background:#fff3ef;border:1px solid #f0c9bd;color:#b8402c;font-size:13px;font-weight:800;padding:6px 12px;border-radius:10px;}
+  #escbar button:active{background:#fbe3db;}
+  .es-lb{font-size:13px;font-weight:800;color:#5b6b68;margin:12px 2px 5px;}
+  .es-in,.es-sel,.es-ta{width:100%;font-size:16px;padding:11px 12px;border:1px solid #dbe7e4;border-radius:11px;background:#fff;color:var(--ink);}
+  .es-ta{min-height:90px;resize:vertical;font-family:inherit;}
+  .es-sub{width:100%;margin-top:16px;background:var(--coral);border:0;color:#fff;font-size:16px;font-weight:800;padding:13px;border-radius:12px;}
+  .es-sub:disabled{opacity:.55;}
+  .es-res{margin-top:12px;font-size:14px;line-height:1.6;padding:12px 14px;border-radius:12px;background:#eef7f5;border:1px solid #cfe6e1;color:#2f6e64;}
+  /* ---------- 優惠碼 ---------- */
+  .pm-intro{font-size:13px;line-height:1.55;color:#5b6b68;background:#eef7f5;border:1px solid #cfe6e1;border-radius:12px;padding:11px 13px;margin-bottom:12px;}
+  .pm-card{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:13px 14px;margin-bottom:10px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .pm-code{display:flex;align-items:center;gap:9px;}
+  .pm-code b{font-size:20px;font-weight:900;letter-spacing:.5px;color:var(--ink);font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all;}
+  .pm-cp{margin-left:auto;flex:0 0 auto;background:var(--teal);border:0;color:#fff;font-size:13px;font-weight:800;padding:7px 12px;border-radius:10px;}
+  .pm-cp:active{background:var(--teal2);}
+  .pm-cp.ok{background:#2f8f82;}
+  .pm-off{font-size:15px;font-weight:800;color:var(--teal2);margin-top:6px;}
+  .pm-meta{font-size:12.5px;color:#7d8c88;margin-top:5px;line-height:1.5;}
+  .pm-say{font-size:13.5px;line-height:1.55;color:#41514e;background:#f6faf9;border-left:3px solid var(--teal);border-radius:0 8px 8px 0;padding:8px 10px;margin-top:9px;}
+  .pm-empty{font-size:14px;line-height:1.6;color:#5b6b68;background:#fff;border:1px solid #e4efec;border-radius:14px;padding:16px;text-align:center;}
+  .rv-file{width:100%;font-size:14px;}
+  .rv-thumb img{max-width:130px;border-radius:8px;margin-top:8px;display:block;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <img src="apple-touch-icon.png" alt="IMG">
+    <div class="ttl">店員助手</div>
+    <button class="plan-btn" id="planBtn">📋<span class="bt"> 今日</span></button>
+    <button class="recv-btn" id="recvBtn">📦<span class="bt"> 收貨</span></button>
+    <button class="recv-btn" id="brkBtn">🔧<span class="bt"> 壞機</span></button>
+    <button class="recv-btn" id="promoBtn">🎫<span class="bt"> 優惠</span></button>
+    <div class="badge" id="badge"></div>
+  </header>
+  <div id="notice"></div>
+  <div id="msgs"></div>
+  <div id="escbar"><div class="t">搞唔掂？唔好自己諗</div><button id="escBtn">⚠️ 交上司</button></div>
+  <footer>
+    <textarea id="q" rows="1" placeholder="打你想問嘅嘢…" enterkeyhint="send"></textarea>
+    <button id="send">問</button>
+  </footer>
+</div>
+
+<div id="gate">
+  <img class="logo" src="apple-touch-icon.png" alt="IMG">
+  <h1>IMG 店員助手</h1>
+  <div class="sub">前線同事專用 · 入你自己嘅登入碼</div>
+  <div class="card">
+    <label>你嘅登入碼</label>
+    <input id="pin" type="tel" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="＿＿＿＿">
+    <div class="err" id="g_err"></div>
+    <button class="go" id="g_go">開始用</button>
+    <div class="hint">每人一個碼，唔好借人。唔記得碼搵上司。</div>
+  </div>
+</div>
+
+<div id="plan">
+  <div class="ph"><div class="t">📋 今日流程</div><button class="x" id="planClose">✕</button></div>
+  <div class="kpi" id="kpi"></div>
+  <div class="body" id="planBody"></div>
+  <div class="tip">打勾淨係方便你自己記住，每日自動清。</div>
+</div>
+
+<div id="recv">
+  <div class="ph"><div class="t">📦 收貨</div><button class="x" id="recvClose">✕</button></div>
+  <div class="body" id="recvBody"></div>
+</div>
+
+<div id="brk">
+  <div class="ph"><div class="t">🔧 報壞機（在庫）</div><button class="x" id="brkClose">✕</button></div>
+  <div class="body">
+    <div class="rv-intro">店入面部機用下先發現<b>壞咗</b>？喺度報。<b>Serial 一定要填</b>，影相更好（影機身 + serial 位）。報咗交上司審批，批核咗先落架 —— 你唔使自己改 Shopify。</div>
+    <div class="rv-card">
+      <div class="rv-lb">邊部機（型號 / 名）？</div>
+      <input class="rv-in" id="brkModel" placeholder="例：Yashica T AF-D">
+      <div class="rv-lb" style="margin-top:12px;">機身 Serial</div>
+      <input class="rv-in" id="brkSerial" placeholder="例：SN12345">
+      <div class="rv-lb" style="margin-top:12px;">壞成點</div>
+      <select class="rv-sel" id="brkCond"><option value="">揀一個</option><option value="快門／過片問題">快門／過片問題</option><option value="對焦／鏡頭問題">對焦／鏡頭問題</option><option value="測光／電子問題">測光／電子問題</option><option value="外殼／機械損">外殼／機械損</option><option value="入水／發霉">入水／發霉</option><option value="其他">其他（詳情寫低）</option></select>
+      <input class="rv-in" id="brkNote" placeholder="詳情（例：快門唔郁、對唔到焦）" style="margin-top:8px;">
+      <div class="rv-photo need" style="margin-top:12px;"><div class="rv-lb rv-photolb">壞機相（影機身 + serial 位）</div><input class="rv-file" id="brkFile" type="file" accept="image/*" capture="environment"><div class="rv-thumb" id="brkThumb"></div></div>
+      <button class="rv-sub" id="brkSub">提交報壞機</button>
+      <div id="brkRes"></div>
+    </div>
+  </div>
+</div>
+
+<div id="esc">
+  <div class="ph"><div class="t">⚠️ 交上司</div><button class="x" id="escClose">✕</button></div>
+  <div class="body">
+    <div class="rv-intro">搞唔掂、超出你權限、或者客人唔收貨 —— 喺度交上去。<b>上司香港時間下午 2 點前會睇到，即日覆。</b><br>交咗之後同客講：「我已經交咗上司，佢會親自跟，今日內覆你。」</div>
+    <div class="rv-card">
+      <div class="es-lb">係咩事？</div>
+      <select class="es-sel" id="escCat">
+        <option value="折扣超權限">折扣超出我權限</option>
+        <option value="退款">退款 / 退貨</option>
+        <option value="二手機">二手機爭議</option>
+        <option value="沖壞或整唔見菲林">沖壞 / 整唔見菲林</option>
+        <option value="客人投訴">客人投訴 / 發火</option>
+        <option value="其他">其他</option>
+      </select>
+      <div class="es-lb">客人 / 單號 / 菲林號碼</div>
+      <input class="es-in" id="escWho" placeholder="例：陳小姐 9xxx xxxx / #144339">
+      <div class="es-lb">發生咩事</div>
+      <textarea class="es-ta" id="escDetail" placeholder="簡單講：客人要咩、你已經做過乜"></textarea>
+      <div class="es-lb">你覺得應該點做（可以留空）</div>
+      <input class="es-in" id="escSug" placeholder="例：想批多 5%">
+      <div class="es-lb">客人而家點</div>
+      <select class="es-sel" id="escMood">
+        <option value="冷靜">冷靜，肯等</option>
+        <option value="唔耐煩">唔耐煩</option>
+        <option value="發火">發火</option>
+        <option value="已經走咗">已經走咗</option>
+      </select>
+      <button class="es-sub" id="escSub">送出畀上司</button>
+      <div id="escRes"></div>
+    </div>
+  </div>
+</div>
+
+<div id="promo">
+  <div class="ph"><div class="t">🎫 優惠碼</div><button class="x" id="promoClose">✕</button></div>
+  <div class="body" id="promoBody"></div>
+</div>
+
+<div id="me">
+  <div class="me-box">
+    <div class="me-who"><span id="meName"></span></div>
+    <div class="me-store" id="meStore"></div>
+    <button class="me-b" id="meUpd">🔄 更新到最新版</button>
+    <button class="me-b" id="meSwap">🔁 換店</button>
+    <button class="me-b out" id="meOut">🚪 登出</button>
+    <button class="me-b ghost" id="meClose">取消</button>
+  </div>
+</div>
+<div id="pick">
+  <div class="pk-box">
+    <div class="pk-t">你今日喺邊間舖？</div>
+    <div class="pk-s">揀咗先入到嗰間舖嘅收貨清單</div>
+    <button class="pk-b" data-s="旺角">旺角</button>
+    <button class="pk-b" data-s="中環">中環</button>
+    <button class="pk-b" data-s="銅鑼灣">銅鑼灣</button>
+    <div class="pk-n">揀錯咗？頭部撳「換」就改得返。</div>
+  </div>
+</div>
+<script>
+var API='https://script.google.com/macros/s/AKfycbyvoP33UIINAsBdm5X0FXTq0Qp6sFcvYshJOKyzziASDqjiyDV_Q3yxWn1GlRAMQOQY/exec';
+var LS=window.localStorage;
+var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.getItem('img_store')||'';
+var PICKED=LS.getItem('img_picked')==='1';
+function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
+if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
+var APP_VER='2026-08-24-01';
+var msgs=document.getElementById('msgs');
+var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
+var busy=false, seq=0;
+
+function jsonp(params){
+  return new Promise(function(resolve){
+    var cb='j'+(seq++)+'_'+Math.floor(performance.now());
+    var s=document.createElement('script');
+    var done=false;
+    window[cb]=function(d){ done=true; try{delete window[cb];}catch(e){} if(s.parentNode)s.parentNode.removeChild(s); resolve(d); };
+    if(STORE && !params.store) params.store=STORE;
+    var qs=Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
+    s.src=API+'?'+qs+'&callback='+cb;
+    s.onerror=function(){ if(!done){done=true; if(s.parentNode)s.parentNode.removeChild(s); resolve({error:1});} };
+    document.body.appendChild(s);
+    setTimeout(function(){ if(!done){done=true; if(s.parentNode)s.parentNode.removeChild(s); resolve({timeout:1});} }, 30000);
+  });
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmt(s){ return esc(s).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>'); }
+function addBubble(text, who, cls){
+  var row=document.createElement('div');
+  row.className='row '+who+(cls?' '+cls:'');
+  var b=document.createElement('div'); b.className='bub';
+  if(who==='bot' && !cls){ b.innerHTML=fmt(text); } else { b.textContent=text; }
+  row.appendChild(b); msgs.appendChild(row);
+  msgs.scrollTop=msgs.scrollHeight;
+  return row;
+}
+
+function greet(){
+  addBubble('你好 '+NAME+' 👋 有咩幫到你？打你想問嘅嘢，或者打單號查沖印進度。', 'bot');
+}
+
+async function loadNotice(){
+  var r=await jsonp({notice:'1'});
+  var n=(r&&r.notice)?String(r.notice).trim():'';
+  if(n){ var el=document.getElementById('notice'); el.innerHTML='<b>公告：</b>'+n.replace(/</g,'&lt;'); el.style.display='block'; }
+}
+
+async function send(){
+  if(busy) return;
+  var t=qEl.value.trim();
+  if(!t) return;
+  qEl.value=''; autolimit();
+  addBubble(t,'me');
+  busy=true; sendBtn.disabled=true;
+  var typing=addBubble('諗緊…','bot','typing');
+  var r=await jsonp({api:'1', code:PIN, q:t});
+  typing.parentNode.removeChild(typing);
+  busy=false; sendBtn.disabled=false;
+  var reply=(r&&r.reply)?r.reply:'';
+  if(r&&(r.error||r.timeout)){ addBubble('網絡唔穩定，遲少少再試多次 🙏','bot'); return; }
+  if(reply.indexOf('⛔')===0){
+    addBubble(reply,'bot');
+    LS.removeItem('img_pin'); PIN='';
+    setTimeout(function(){ showGate('登入碼過期或者停咗，麻煩再入一次。'); }, 800);
+    return;
+  }
+  addBubble(reply||'（暫時冇回覆，試多次）','bot');
+}
+
+function autolimit(){ qEl.style.height='auto'; qEl.style.height=Math.min(qEl.scrollHeight,120)+'px'; }
+qEl.addEventListener('input', autolimit);
+qEl.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } });
+sendBtn.addEventListener('click', send);
+
+/* ---------- gate ---------- */
+function showGate(msg){
+  document.getElementById('gate').style.display='flex';
+  document.getElementById('g_err').textContent=msg||'';
+  document.getElementById('pin').value='';
+}
+function hideGate(){ document.getElementById('gate').style.display='none'; }
+
+async function tryLogin(){
+  var pw=document.getElementById('pin').value.trim();
+  var err=document.getElementById('g_err');
+  if(!pw){ err.textContent='入你嘅登入碼'; return; }
+  err.textContent='檢查緊…';
+  var go=document.getElementById('g_go'); go.disabled=true;
+  var r=await jsonp({login:'1', code:pw});
+  go.disabled=false;
+  if(r&&(r.error||r.timeout)){ err.textContent='網絡唔通，再試一次'; return; }
+  if(!r || !r.ok){ err.textContent='登入碼唔啱，搵上司攞返'; return; }
+  PIN=pw; NAME=r.name||''; STORE=r.store||'';
+  PICKED = !STORE;
+  LS.setItem('img_pin',pw); LS.setItem('img_name',NAME); LS.setItem('img_store',STORE);
+  LS.setItem('img_picked', PICKED?'1':'0');
+  if(PICKED){ hideGate(); openPick(true); return; }
+  startChat(true);
+}
+document.getElementById('g_go').addEventListener('click', tryLogin);
+document.getElementById('pin').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); tryLogin(); } });
+
+function openMe(){
+  document.getElementById('meName').textContent = (NAME || '') ;
+  document.getElementById('meStore').textContent = (STORE ? ('而家喺 ' + STORE) : '未揀店') + '　·　版本 ' + APP_VER;
+  document.getElementById('meSwap').style.display = PICKED ? 'block' : 'none';
+  document.getElementById('me').classList.add('on');
+}
+function closeMe(){ document.getElementById('me').classList.remove('on'); }
+function doLogout(){
+  try{ LS.removeItem('img_pin'); LS.removeItem('img_name'); LS.removeItem('img_store');
+       LS.removeItem('img_picked'); LS.removeItem('img_store_day'); }catch(e){}
+  PIN=''; NAME=''; STORE=''; PICKED=false;
+  closeMe();
+  try{ document.getElementById('pick').classList.remove('on'); }catch(e){}
+  try{ document.getElementById('recv').style.display='none'; }catch(e){}
+  try{ document.getElementById('brk').style.display='none'; }catch(e){}
+  try{ document.getElementById('plan').style.display='none'; }catch(e){}
+  try{ document.getElementById('promo').style.display='none'; }catch(e){}
+  try{ document.getElementById('esc').style.display='none'; }catch(e){}
+  PROMO_CACHE=null;
+  try{ msgs.innerHTML=''; }catch(e){}
+  try{ document.getElementById('pin').value=''; }catch(e){}
+  showGate('');
+}
+document.getElementById('meClose').addEventListener('click', closeMe);
+document.getElementById('me').addEventListener('click', function(e){ if(e.target.id==='me') closeMe(); });
+document.getElementById('meSwap').addEventListener('click', function(){ closeMe(); openPick(false); });
+document.getElementById('meUpd').addEventListener('click', function(){
+  var b=this; b.textContent='檢查緊…'; b.disabled=true;
+  try{ LS.removeItem('img_upd_tried'); LS.removeItem('img_upd_at'); }catch(e){}
+  checkUpdate(true);
+  setTimeout(function(){ b.textContent='已經係最新版 ✓'; setTimeout(function(){ b.textContent='🔄 更新到最新版'; b.disabled=false; }, 1800); }, 3000);
+});
+document.getElementById('meOut').addEventListener('click', doLogout);
+
+var PICK_FRESH=false;
+function openPick(fresh){ PICK_FRESH=!!fresh; document.getElementById('pick').classList.add('on'); }
+function closePick(){ document.getElementById('pick').classList.remove('on'); }
+Array.prototype.forEach.call(document.querySelectorAll('.pk-b'), function(b){
+  b.addEventListener('click', function(){
+    STORE=b.getAttribute('data-s');
+    LS.setItem('img_store',STORE);
+    LS.setItem('img_store_day',hkDay());
+    LS.setItem('img_picked','1');
+    PICKED=true;
+    closePick();
+    startChat(PICK_FRESH);
+  });
+});
+
+function startChat(fresh){
+  hideGate();
+  var bd=document.getElementById('badge');
+  bd.textContent = STORE || NAME;
+  bd.title = (STORE?STORE+' · ':'')+NAME;
+  bd.textContent = (STORE||NAME) + ' \u25be';
+  bd.classList.add('tapin');
+  if(!bd.dataset.bound){ bd.dataset.bound='1'; bd.addEventListener('click', openMe); }
+  if(fresh){ msgs.innerHTML=''; greet(); }
+  loadNotice();
+}
+
+/* ---------- 今日流程 checklist ---------- */
+var PLAN=[
+  { key:'open', title:'☀️ 開舖', from:10, to:13, items:[
+    '打卡 in（Infotech）',
+    '開冷氣、開晒燈',
+    '開銀箱點 float $2000 → 影相上 Drive（對唔到即搵經理，唔好自補）',
+    '開沖機 + 掃描儀',
+    '貓：鏟砂、加糧、換水',
+    '補菲林 display（每款 4 卷）、補電池',
+    '12:00 翻牌「營業中」、開門',
+    '影店相上 Drive、覆 email / WhatsApp / IG DM',
+    'IG story ≥ 4（tag 分店）',
+    '試機片 ≥ 3'
+  ]},
+  { key:'day', title:'🕑 日中', from:13, to:19, items:[
+    '客入店 3 秒內招呼',
+    'email / WhatsApp / IG 每 2 鐘 check',
+    '網單 check（早 / 午 / 晚）',
+    'IG story 夠 4、試機片夠 3',
+    '貓每 2 鐘睇水糧',
+    '收銀跟 POS、折扣要 reason code',
+    '慢時段：補貨、清潔、執沖印 backlog'
+  ]},
+  { key:'close', title:'🌙 收舖', from:19, to:24, items:[
+    '19:30 填 Sales Target',
+    '橙機日結、黑機（AE）日結',
+    '20:00 翻牌關閉、鎖門（唔可早收）',
+    'POS 點錢箱對數（差 >$200 即搵經理）→ 留 $2000、餘額入錢袋',
+    '影 4 張相 send WhatsApp「Imageplayground Shop」',
+    '沖機支架泡水、關掃描儀、logout POS、關卡機叉電',
+    '貓：糧水、清砂、開風扇',
+    '執舖、倒垃圾',
+    '巡舖鎖玻璃櫃、關燈、打卡 out、鎖門'
+  ]}
+];
+function today_(){ var d=new Date(); return ''+d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2); }
+function pkey_(seg,idx){ return 'img_plan_'+today_()+'_'+seg+'_'+idx; }
+function curSeg_(){ var h=new Date().getHours(); for(var i=0;i<PLAN.length;i++){ if(h>=PLAN[i].from && h<PLAN[i].to) return PLAN[i].key; } return 'day'; }
+function renderPlan(){
+  var cur=curSeg_(); var body=document.getElementById('planBody'); body.innerHTML='';
+  PLAN.forEach(function(seg){
+    var done=0; seg.items.forEach(function(_,i){ if(LS.getItem(pkey_(seg.key,i))==='1') done++; });
+    var wrap=document.createElement('div'); wrap.className='seg'+(seg.key===cur?' open':'');
+    var sh=document.createElement('div'); sh.className='sh';
+    sh.innerHTML='<span class="chev">▶</span><span>'+seg.title+'</span>'+(seg.key===cur?'<span class="now">而家</span>':'')+'<span class="cnt">'+done+'/'+seg.items.length+'</span>';
+    sh.onclick=function(){ wrap.classList.toggle('open'); };
+    wrap.appendChild(sh);
+    var items=document.createElement('div'); items.className='items';
+    seg.items.forEach(function(txt,i){
+      var on=LS.getItem(pkey_(seg.key,i))==='1';
+      var it=document.createElement('div'); it.className='it'+(on?' done':'');
+      it.innerHTML='<div class="box">'+(on?'✓':'')+'</div><div class="tx">'+esc(txt)+'</div>';
+      it.onclick=function(){
+        var now=LS.getItem(pkey_(seg.key,i))==='1';
+        if(now){ LS.removeItem(pkey_(seg.key,i)); } else { LS.setItem(pkey_(seg.key,i),'1'); }
+        renderPlan();
+      };
+      items.appendChild(it);
+    });
+    wrap.appendChild(items); body.appendChild(wrap);
+  });
+}
+var KPI_TARGET=9;
+async function loadKpi(){
+  var el=document.getElementById('kpi');
+  el.innerHTML='<div class="kpi-in"><span class="kpi-ic">📸</span><span class="kpi-tx">今日 IG story</span><span class="kpi-num">…</span></div><div class="kpi-sub">全店今日出咗幾多條 story</div>';
+  var r=await jsonp({storycount:'1'});
+  if(r && r.ok){
+    var n=r.count||0; var hit=n>=KPI_TARGET;
+    el.innerHTML='<div class="kpi-in'+(hit?' hit':'')+'"><span class="kpi-ic">📸</span><span class="kpi-tx">今日 IG story</span><span class="kpi-num">'+n+'</span><span class="kpi-tg">目標 '+KPI_TARGET+'</span></div><div class="kpi-sub">全店今日出咗幾多條 story'+(hit?' · 夠數 👍':'')+'</div>';
+  } else {
+    el.innerHTML='<div class="kpi-in"><span class="kpi-ic">📸</span><span class="kpi-tx">今日 IG story</span><span class="kpi-num">–</span></div><div class="kpi-sub">暫時攞唔到，遲少少再開</div>';
+  }
+}
+document.getElementById('planBtn').addEventListener('click', function(){ renderPlan(); document.getElementById('plan').style.display='flex'; loadKpi(); });
+document.getElementById('planClose').addEventListener('click', function(){ document.getElementById('plan').style.display='none'; });
+
+/* ---------- 收貨 receiving ---------- */
+var COND_OPTS=['全新未開','接近全新','輕微使用痕','明顯花／舊','有問題／待檢'];
+function recvOpen(){ document.getElementById('recv').style.display='flex'; loadRecvList(); }
+function recvClose(){ document.getElementById('recv').style.display='none'; }
+async function loadRecvList(){
+  var body=document.getElementById('recvBody');
+  body.innerHTML='<div class="rv-empty">攞緊今日要收嘅貨…</div>';
+  var r=await jsonp({receivelist:'1', code:PIN});
+  if(!r || !r.ok){ body.innerHTML='<div class="rv-empty">暫時攞唔到，遲少少再試 🙏</div>'; return; }
+  var items=r.items||[];
+  var html='<div class="rv-intro">收貨要<b>盲數</b>：你未見到 PO 應該幾多，照實數幾多入幾多。數完系統即刻同你對數，唔啱會即時話你知。二手機記得填 serial 同機況。</div>';
+  if(!items.length){
+    html+='<div class="rv-empty">而家冇貨要收 👍<br>有新貨發到你間舖，先會喺度出現。</div>';
+    body.innerHTML=html; return;
+  }
+  items.forEach(function(it,idx){
+    html+='<div class="rv-card" id="rvc'+idx+'">'
+      +'<div class="rv-prod">'+esc(it.product||'(未命名)')+'</div>'
+      +'<div class="rv-meta"><span>PO '+esc(it.po)+'</span>'+(it.supplier?'<span>'+esc(it.supplier)+'</span>':'')+(it.sku?'<span>SKU '+esc(it.sku)+'</span>':'')+'</div>'
+      +'<button class="rv-open" id="rvo'+idx+'">開始收呢件</button>'
+      +'<div class="rv-form" id="rvf'+idx+'">'
+        +'<div class="rv-lb">實際數到幾多（'+esc(it.unit||'件')+'）？</div>'
+        +'<input class="rv-cnt" id="rvn'+idx+'" type="tel" inputmode="numeric" placeholder="0">'
+        +'<details class="rv-more"><summary>＋ 二手機資料（serial／機況／配件）</summary>'
+          +'<input class="rv-in" id="rvs'+idx+'" placeholder="機身 Serial（例：SN12345）">'
+          +'<select class="rv-sel" id="rvcd'+idx+'"><option value="">機況（揀一個）</option>'+COND_OPTS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('')+'</select>'
+          +'<input class="rv-in" id="rva'+idx+'" placeholder="配件（例：原電、原盒、鏡頭蓋）">'
+          +'<div class="rv-photo" id="rvpw'+idx+'"><div class="rv-lb rv-photolb">壞機相（有相更好：影機身 + serial 位；暫時可留空，上司會跟進）</div><input class="rv-file" id="rvp'+idx+'" type="file" accept="image/*" capture="environment"><div class="rv-thumb" id="rvth'+idx+'"></div></div>'
+        +'</details>'
+        +'<button class="rv-sub" id="rvb'+idx+'">提交收貨</button>'
+        +'<div id="rvr'+idx+'"></div>'
+      +'</div>'
+    +'</div>';
+  });
+  body.innerHTML=html;
+  items.forEach(function(it,idx){
+    document.getElementById('rvo'+idx).onclick=function(){
+      var f=document.getElementById('rvf'+idx);
+      var open=f.classList.toggle('open');
+      this.style.display=open?'none':'block';
+      if(open){ document.getElementById('rvn'+idx).focus(); }
+    };
+    document.getElementById('rvb'+idx).onclick=function(){ submitRecv(it, idx, this); };
+    document.getElementById('rvcd'+idx).onchange=function(){ document.getElementById('rvpw'+idx).classList.toggle('need', this.value==='有問題／待檢'); };
+    document.getElementById('rvp'+idx).onchange=function(){ var file=this.files&&this.files[0]; if(!file) return; compressImg(file,1000,0.5).then(function(b64){ RECV_PHOTO[idx]=b64; document.getElementById('rvth'+idx).innerHTML=b64?'<img src="data:image/jpeg;base64,'+b64+'">':''; }); };
+  });
+}
+var RECV_PHOTO={};
+function compressImg(file, maxW, q){
+  return new Promise(function(res){
+    var img=new Image(); var u=URL.createObjectURL(file);
+    img.onload=function(){
+      var sc=Math.min(1, maxW/img.width); var w=Math.round(img.width*sc), h=Math.round(img.height*sc);
+      var c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(u);
+      try{ res(c.toDataURL('image/jpeg', q).split(',')[1]); }catch(e){ res(''); }
+    };
+    img.onerror=function(){ URL.revokeObjectURL(u); res(''); };
+    img.src=u;
+  });
+}
+function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+/* chunked JSONP GET 上傳（可靠：同全 app 一樣行 JSONP，唔行爛咗嘅 no-cors POST） */
+async function uploadPhoto(b64, serial, onprog){
+  if(!b64) return '';
+  var id='ph'+Date.now()+'_'+Math.floor(Math.random()*100000);
+  var CH=6000, n=Math.ceil(b64.length/CH);
+  for(var i=0;i<n;i++){
+    var part=b64.substr(i*CH, CH);
+    var r=await jsonp({photoput:'1', code:PIN, id:id, i:i, n:n, part:part});
+    if(!r || !r.ok){ r=await jsonp({photoput:'1', code:PIN, id:id, i:i, n:n, part:part}); }
+    if(!r || !r.ok) return '';
+    if(onprog) onprog(Math.round((i+1)/n*100));
+  }
+  var done=await jsonp({photodone:'1', code:PIN, id:id, n:n, serial:serial||''});
+  return (done && done.ok && done.url) ? done.url : '';
+}
+async function submitRecv(it, idx, btn){
+  var nEl=document.getElementById('rvn'+idx);
+  var res=document.getElementById('rvr'+idx);
+  var raw=(nEl.value||'').trim();
+  if(raw===''||isNaN(Number(raw))){ res.innerHTML='<div class="rv-res diff">入返個數先得（實際數到幾多件）。</div>'; nEl.focus(); return; }
+  var blind=Number(raw);
+  var serial=(document.getElementById('rvs'+idx).value||'').trim();
+  var cond=(document.getElementById('rvcd'+idx).value||'').trim();
+  var accRaw=(document.getElementById('rva'+idx).value||'').trim();
+  var acc=(cond?'【'+cond+'】':'')+(accRaw?(cond?' ':'')+accRaw:'');
+  var broken=(cond==='有問題／待檢');
+  if(broken && !serial){ res.innerHTML='<div class="rv-res broken">壞機一定要填 <b>serial</b> 先交得。</div>'; document.getElementById('rvs'+idx).focus(); return; }
+  btn.disabled=true;
+  var photoUrl='';
+  if(broken && RECV_PHOTO[idx]){
+    photoUrl=await uploadPhoto(RECV_PHOTO[idx], serial, function(p){ btn.textContent='上載相 '+p+'%…'; });  // 盡力上傳;傳唔到都照交
+  }
+  btn.textContent='提交緊…';
+  var r=await jsonp({receive:'1', code:PIN, row:it.row, po:it.po, blind:blind, serial:serial, acc:acc, broken:broken?'1':'0', cond:cond, photo:photoUrl});
+  if(!r || !r.ok){
+    btn.disabled=false; btn.textContent='提交收貨';
+    var msg=(r&&r.err==='mismatch')?'呢張 PO 對唔上你間舖，交返上司跟進。':'交唔到，網絡唔穩定，再試一次 🙏';
+    res.innerHTML='<div class="rv-res diff">'+msg+'</div>'; return;
+  }
+  nEl.disabled=true; btn.style.display='none';
+  if(r.result==='壞機'){
+    res.innerHTML='<div class="rv-res broken">⚠️ 已記錄<b>壞機</b>（serial '+esc(serial)+'）+ 相，唔會入正常庫存。已即刻通知上司，等上司批核「報廢／零件機」。你唔使再搞。</div>';
+    setTimeout(loadRecvList, 2600);
+  } else if(r.result==='啱'){
+    res.innerHTML='<div class="rv-res ok">✓ 收貨完成，數啱晒（'+r.blind+' '+esc(it.unit||'件')+'）。已入紀錄，唔使再搞。</div>';
+    setTimeout(loadRecvList, 2600);
+  } else {
+    res.innerHTML='<div class="rv-res diff">⚠️ 數唔夾：你數到 <b>'+r.blind+'</b>，PO 應該係 <b>'+r.expect+'</b>。'
+      +'<div class="rv-act"><b>而家即刻做（送貨嗰位仲喺度先做得到）：</b>'
+      +'<div>① <b>唔好畀佢走先</b> —— 同佢一齊再數一次</div>'
+      +'<div>② 真係少咗 → 叫佢喺送貨單寫低「實收 '+r.blind+'」+ 簽名，你影張相</div>'
+      +'<div>③ 送貨單影咗相就得，唔使再做嘢</div>'
+      +'</div>已經幫你入咗紀錄，上司今朝會見到，會跟供應商。<b>唔係你嘅錯。</b></div>';
+  }
+}
+document.getElementById('recvBtn').addEventListener('click', recvOpen);
+document.getElementById('recvClose').addEventListener('click', recvClose);
+
+/* ---------- 在庫機轉壞機 ---------- */
+var BRK_PHOTO='';
+function brkOpen(){ document.getElementById('brk').style.display='flex'; }
+function brkClose(){ document.getElementById('brk').style.display='none'; }
+function brkReset(){
+  BRK_PHOTO='';
+  document.getElementById('brkModel').value='';
+  document.getElementById('brkSerial').value='';
+  document.getElementById('brkCond').value='';
+  document.getElementById('brkNote').value='';
+  document.getElementById('brkThumb').innerHTML='';
+  document.getElementById('brkRes').innerHTML='';
+  var b=document.getElementById('brkSub'); b.disabled=false; b.style.display='block'; b.textContent='提交報壞機';
+}
+document.getElementById('brkFile').onchange=function(){
+  var file=this.files&&this.files[0]; if(!file) return;
+  compressImg(file,1000,0.5).then(function(b64){ BRK_PHOTO=b64; document.getElementById('brkThumb').innerHTML=b64?'<img src="data:image/jpeg;base64,'+b64+'">':''; });
+};
+async function submitBrk(btn){
+  var model=(document.getElementById('brkModel').value||'').trim();
+  var serial=(document.getElementById('brkSerial').value||'').trim();
+  var cond=(document.getElementById('brkCond').value||'').trim();
+  var note=(document.getElementById('brkNote').value||'').trim();
+  var res=document.getElementById('brkRes');
+  if(!model){ res.innerHTML='<div class="rv-res diff">填返部機係咩型號／名先得。</div>'; document.getElementById('brkModel').focus(); return; }
+  if(!serial){ res.innerHTML='<div class="rv-res broken">壞機一定要填 <b>serial</b> 先報得。</div>'; document.getElementById('brkSerial').focus(); return; }
+  var reason=(cond?cond:'')+(note?(cond?'：':'')+note:'');
+  btn.disabled=true;
+  var photoUrl='';
+  if(BRK_PHOTO){ photoUrl=await uploadPhoto(BRK_PHOTO, serial, function(p){ btn.textContent='上載相 '+p+'%…'; }); }
+  btn.textContent='提交緊…';
+  var r=await jsonp({breakstock:'1', code:PIN, model:model, serial:serial, cond:reason, photo:photoUrl});
+  if(!r || !r.ok){ btn.disabled=false; btn.textContent='提交報壞機'; res.innerHTML='<div class="rv-res diff">交唔到，網絡唔穩定，再試一次 🙏</div>'; return; }
+  btn.style.display='none';
+  res.innerHTML='<div class="rv-res broken">⚠️ 已報壞機（'+esc(model)+' · serial '+esc(serial)+'）'+(photoUrl?' + 相':'')+'。已入紀錄，上司會喺朝早 brief 見到，批核咗先落架。你唔使自己改 Shopify。</div>';
+  setTimeout(brkReset, 3200);
+}
+document.getElementById('brkBtn').addEventListener('click', brkOpen);
+document.getElementById('brkClose').addEventListener('click', brkClose);
+document.getElementById('brkSub').addEventListener('click', function(){ submitBrk(this); });
+
+/* ---------- 優惠碼 ---------- */
+var PROMO_CACHE=null;
+function promoOpen(){
+  document.getElementById('promo').style.display='flex';
+  promoLoad(false);
+}
+function promoClose(){ document.getElementById('promo').style.display='none'; }
+function promoRow(x){
+  var h='<div class="pm-card"><div class="pm-code"><b>'+esc(x.code)+'</b>'
+      + '<button class="pm-cp" data-c="'+esc(x.code)+'">複製</button></div>';
+  if(x.off)  h+='<div class="pm-off">'+esc(x.off)+'</div>';
+  var m=[];
+  if(x.who)  m.push('👤 '+esc(x.who));
+  if(x.till) m.push('🗓 '+esc(x.till));
+  if(m.length) h+='<div class="pm-meta">'+m.join('　')+'</div>';
+  if(x.say)  h+='<div class="pm-say">💬 '+esc(x.say)+'</div>';
+  return h+'</div>';
+}
+async function promoLoad(force){
+  var b=document.getElementById('promoBody');
+  if(PROMO_CACHE && !force){ promoPaint(PROMO_CACHE); return; }
+  b.innerHTML='<div class="pm-empty">攞緊…</div>';
+  var r=await jsonp({promo:'1', code:PIN});
+  if(!r || !r.ok){
+    b.innerHTML='<div class="pm-empty">攞唔到優惠碼，網絡唔通？<br>撳返 ✕ 再入一次。</div>';
+    return;
+  }
+  PROMO_CACHE=r; promoPaint(r);
+}
+function promoPaint(r){
+  var b=document.getElementById('promoBody');
+  var list=r.list||[];
+  var h='<div class="pm-intro">呢度係<b>可以同客講</b>嘅優惠碼。冇列喺度嘅碼<b>唔好自己開</b>，唔肯定就問上司。</div>';
+  if(!list.length){
+    h+='<div class="pm-empty">而家未有可以公開嘅優惠碼。<br>有新優惠上司會加入去，你返嚟撳一撳就見到。</div>';
+  } else {
+    for(var i=0;i<list.length;i++) h+=promoRow(list[i]);
+  }
+  if(r.sheet) h+='<div class="pm-meta" style="text-align:center;margin-top:14px;"><a href="'+esc(r.sheet)+'" target="_blank" rel="noopener">✏️ 改名單（上司專用）</a></div>';
+  b.innerHTML=h;
+}
+document.getElementById('promoBtn').addEventListener('click', promoOpen);
+document.getElementById('promoClose').addEventListener('click', promoClose);
+document.getElementById('promoBody').addEventListener('click', function(e){
+  var t=e.target;
+  if(t && t.classList && t.classList.contains('pm-cp')){
+    var c=t.getAttribute('data-c')||'';
+    try{ navigator.clipboard.writeText(c); }catch(err){}
+    t.textContent='✓ 複製咗'; t.classList.add('ok');
+    setTimeout(function(){ t.textContent='複製'; t.classList.remove('ok'); }, 1600);
+  }
+});
+
+/* ---------- 交上司 ---------- */
+function escOpen(){ document.getElementById('esc').style.display='flex'; }
+function escClose(){ document.getElementById('esc').style.display='none'; }
+function escReset(){
+  document.getElementById('escWho').value='';
+  document.getElementById('escDetail').value='';
+  document.getElementById('escSug').value='';
+  document.getElementById('escRes').innerHTML='';
+  var b=document.getElementById('escSub'); b.style.display='block'; b.disabled=false; b.textContent='送出畀上司';
+}
+async function submitEsc(btn){
+  var detail=document.getElementById('escDetail').value.trim();
+  var res=document.getElementById('escRes');
+  if(!detail){ res.innerHTML='<div class="rv-res bad">要寫低發生咩事，上司先跟得到。</div>'; return; }
+  btn.disabled=true; btn.textContent='送緊…';
+  var r=await jsonp({esc:'1', code:PIN, store:STORE||'',
+    cat:document.getElementById('escCat').value,
+    who:document.getElementById('escWho').value.trim(),
+    detail:detail,
+    sug:document.getElementById('escSug').value.trim(),
+    mood:document.getElementById('escMood').value});
+  if(!r || !r.ok){
+    btn.disabled=false; btn.textContent='送出畀上司';
+    res.innerHTML='<div class="rv-res bad">送唔到，網絡唔穩定，再撳一次。</div>';
+    return;
+  }
+  btn.style.display='none';
+  res.innerHTML='<div class="es-res">✅ 已經交咗上司。<br>同客講：「我已經交咗上司，佢會親自跟，今日內覆你。」<br><br>你唔使再等喺度，繼續做嘢就得。</div>';
+  setTimeout(function(){ escReset(); escClose(); }, 4200);
+}
+document.getElementById('escBtn').addEventListener('click', escOpen);
+document.getElementById('escClose').addEventListener('click', escClose);
+document.getElementById('escSub').addEventListener('click', function(){ submitEsc(this); });
+
+/* ---------- 自動更新（店員唔使做任何嘢） ---------- */
+var UPD_BUSY=false;
+async function checkUpdate(force){
+  if(UPD_BUSY) return;
+  try{
+    var last=+(LS.getItem('img_upd_at')||0);
+    if(!force && (Date.now()-last) < 1800000) return;
+    UPD_BUSY=true;
+    LS.setItem('img_upd_at', String(Date.now()));
+    var url=location.pathname+'?u='+Date.now();
+    var txt='';
+    try{
+      var rr=await fetch(url, {cache:'no-store', headers:{'Range':'bytes=0-299'}});
+      if(rr.ok || rr.status===206) txt=await rr.text();
+    }catch(e){}
+    var m=txt.match(/APPVER:([0-9A-Za-z._-]+)/);
+    if(!m){
+      try{
+        var r2=await fetch(url, {cache:'no-store'});
+        if(r2.ok) txt=await r2.text();
+      }catch(e){}
+      m=txt.match(/APPVER:([0-9A-Za-z._-]+)/);
+    }
+    if(!m){ UPD_BUSY=false; return; }
+    if(m[1]===APP_VER){ try{ LS.removeItem('img_upd_tried'); }catch(e){} UPD_BUSY=false; return; }
+    if(LS.getItem('img_upd_tried')===m[1]){ UPD_BUSY=false; return; }
+    LS.setItem('img_upd_tried', m[1]);
+    location.replace(location.pathname+'?v='+encodeURIComponent(m[1]));
+  }catch(e){ UPD_BUSY=false; }
+}
+try{
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) checkUpdate(false); });
+  window.addEventListener('focus', function(){ checkUpdate(false); });
+}catch(e){}
+setTimeout(function(){ checkUpdate(false); }, 2500);
+
+/* ---------- boot ---------- */
+if(PIN && NAME && !STORE && PICKED){ showGate(''); hideGate(); openPick(true); }
+else if(PIN && NAME){ startChat(true); }
+else { showGate(''); }
+</script>
+</body>
+</html>
