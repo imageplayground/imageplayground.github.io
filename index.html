@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-08-24-01-->
+<!DOCTYPE html><!--APPVER:2026-08-24-02:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -128,11 +128,11 @@
   header .badge{max-width:32vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   header .recv-btn{background:rgba(255,255,255,.2);border:0;color:#fff;font-size:14px;font-weight:800;padding:6px 11px;border-radius:10px;white-space:nowrap;}
   header .recv-btn:active{background:rgba(255,255,255,.34);}
-  #recv,#brk,#promo,#esc{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
-  #recv .ph,#brk .ph,#promo .ph,#esc .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
-  #recv .ph .t,#brk .ph .t,#promo .ph .t,#esc .ph .t{font-size:17px;font-weight:800;}
-  #recv .ph .x,#brk .ph .x,#promo .ph .x,#esc .ph .x{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:16px;font-weight:800;width:34px;height:34px;border-radius:10px;}
-  #recv .body,#brk .body,#promo .body,#esc .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(20px + env(safe-area-inset-bottom));}
+  #recv,#brk,#promo,#esc,#inbox{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
+  #recv .ph,#brk .ph,#promo .ph,#esc .ph,#inbox .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+  #recv .ph .t,#brk .ph .t,#promo .ph .t,#esc .ph .t,#inbox .ph .t{font-size:17px;font-weight:800;}
+  #recv .ph .x,#brk .ph .x,#promo .ph .x,#esc .ph .x,#inbox .ph .x{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:16px;font-weight:800;width:34px;height:34px;border-radius:10px;}
+  #recv .body,#brk .body,#promo .body,#esc .body,#inbox .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(20px + env(safe-area-inset-bottom));}
   .rv-intro{font-size:13px;line-height:1.55;color:#5b6b68;background:#fff7ec;border:1px solid #f0dcc0;border-radius:12px;padding:11px 13px;margin-bottom:12px;}
   .rv-intro b{color:var(--coral);}
   .rv-card{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:13px 14px;margin-bottom:11px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
@@ -165,6 +165,26 @@
   .rv-photo{display:none;margin-top:10px;padding:10px;border:1px dashed #e6c9c2;border-radius:10px;}
   .rv-photo.need{display:block;background:#fff6f4;}
   .rv-photolb{color:#b23a28;margin-bottom:6px;}
+  /* ---------- 收件匣 ---------- */
+  #escbar .nb{background:#fdeeeb;border:1px solid #f0c9bd;color:#b8402c;font-size:13px;font-weight:800;padding:6px 12px;border-radius:10px;margin-left:0;}
+  #escbar .nb.hot{background:var(--coral);border-color:var(--coral);color:#fff;}
+  .ib-card{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:13px 14px;margin-bottom:11px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .ib-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px;}
+  .ib-id{font-size:12px;font-weight:900;color:#8a9a96;font-family:ui-monospace,Menlo,monospace;}
+  .ib-cat{font-size:12px;font-weight:800;background:#eef7f5;color:#2f6e64;border-radius:999px;padding:3px 9px;}
+  .ib-mood{font-size:12px;font-weight:800;background:#fdeeeb;color:#b8402c;border-radius:999px;padding:3px 9px;}
+  .ib-when{font-size:12px;color:#a3b1ad;margin-left:auto;}
+  .ib-line{font-size:13.5px;line-height:1.6;color:#41514e;margin:3px 0;}
+  .ib-line b{color:var(--ink);}
+  .ib-detail{font-size:14.5px;line-height:1.6;color:var(--ink);background:#f6faf9;border-radius:10px;padding:10px 12px;margin:8px 0;white-space:pre-wrap;}
+  .ib-ans{font-size:14.5px;line-height:1.6;background:#eef7f5;border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:10px 12px;margin-top:9px;white-space:pre-wrap;}
+  .ib-ans .h{font-size:12px;font-weight:900;color:#2f6e64;display:block;margin-bottom:3px;}
+  .ib-ta{width:100%;min-height:80px;font-size:16px;padding:11px 12px;border:1px solid #dbe7e4;border-radius:11px;font-family:inherit;resize:vertical;margin-top:9px;}
+  .ib-send{width:100%;margin-top:8px;background:var(--teal);border:0;color:#fff;font-size:15px;font-weight:800;padding:12px;border-radius:11px;}
+  .ib-send:disabled{opacity:.55;}
+  .ib-ok{width:100%;margin-top:9px;background:#fff;border:1.5px solid var(--teal);color:var(--teal2);font-size:14px;font-weight:800;padding:10px;border-radius:11px;}
+  .ib-new{border-color:var(--coral);box-shadow:0 0 0 2px rgba(224,91,72,.12);}
+  .ib-empty{font-size:14px;line-height:1.6;color:#5b6b68;background:#fff;border:1px solid #e4efec;border-radius:14px;padding:18px;text-align:center;}
   /* ---------- 交上司 ---------- */
   #escbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 12px 0;}
   #escbar .t{font-size:12.5px;color:#8a9a96;}
@@ -205,7 +225,7 @@
   </header>
   <div id="notice"></div>
   <div id="msgs"></div>
-  <div id="escbar"><div class="t">搞唔掂？唔好自己諗</div><button id="escBtn">⚠️ 交上司</button></div>
+  <div id="escbar"><button class="nb" id="inboxBtn" style="display:none">📬</button><div class="t">搞唔掂？唔好自己諗</div><button id="escBtn">⚠️ 交上司</button></div>
   <footer>
     <textarea id="q" rows="1" placeholder="打你想問嘅嘢…" enterkeyhint="send"></textarea>
     <button id="send">問</button>
@@ -254,6 +274,11 @@
       <div id="brkRes"></div>
     </div>
   </div>
+</div>
+
+<div id="inbox">
+  <div class="ph"><div class="t" id="inboxTtl">📬 收件匣</div><button class="x" id="inboxClose">✕</button></div>
+  <div class="body" id="inboxBody"></div>
 </div>
 
 <div id="esc">
@@ -321,7 +346,7 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-08-24-01';
+var APP_VER='2026-08-24-02';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -436,6 +461,9 @@ function doLogout(){
   try{ document.getElementById('plan').style.display='none'; }catch(e){}
   try{ document.getElementById('promo').style.display='none'; }catch(e){}
   try{ document.getElementById('esc').style.display='none'; }catch(e){}
+  try{ document.getElementById('inbox').style.display='none'; }catch(e){}
+  try{ document.getElementById('inboxBtn').style.display='none'; }catch(e){}
+  INBOX={owner:false,n:0,list:[],at:0};
   PROMO_CACHE=null;
   try{ msgs.innerHTML=''; }catch(e){}
   try{ document.getElementById('pin').value=''; }catch(e){}
@@ -798,7 +826,8 @@ async function submitEsc(btn){
     return;
   }
   btn.style.display='none';
-  res.innerHTML='<div class="es-res">✅ 已經交咗上司。<br>同客講：「我已經交咗上司，佢會親自跟，今日內覆你。」<br><br>你唔使再等喺度，繼續做嘢就得。</div>';
+  res.innerHTML='<div class="es-res">✅ 已經交咗上司　·　編號 <b>'+esc(r.id||'')+'</b><br>同客講：「我已經交咗上司，佢會親自跟，今日內覆你。」<br><br>你唔使再等喺度，繼續做嘢就得。覆咗會喺呢個 app 彈返出嚟。</div>';
+  INBOX.at=0; setTimeout(function(){ inboxPoll(true); }, 1500);
   setTimeout(function(){ escReset(); escClose(); }, 4200);
 }
 document.getElementById('escBtn').addEventListener('click', escOpen);
@@ -820,13 +849,13 @@ async function checkUpdate(force){
       var rr=await fetch(url, {cache:'no-store', headers:{'Range':'bytes=0-299'}});
       if(rr.ok || rr.status===206) txt=await rr.text();
     }catch(e){}
-    var m=txt.match(/APPVER:([0-9A-Za-z._-]+)/);
+    var m=txt.match(/APPVER:([^:]+):/);
     if(!m){
       try{
         var r2=await fetch(url, {cache:'no-store'});
         if(r2.ok) txt=await r2.text();
       }catch(e){}
-      m=txt.match(/APPVER:([0-9A-Za-z._-]+)/);
+      m=txt.match(/APPVER:([^:]+):/);
     }
     if(!m){ UPD_BUSY=false; return; }
     if(m[1]===APP_VER){ try{ LS.removeItem('img_upd_tried'); }catch(e){} UPD_BUSY=false; return; }
@@ -840,6 +869,108 @@ try{
   window.addEventListener('focus', function(){ checkUpdate(false); });
 }catch(e){}
 setTimeout(function(){ checkUpdate(false); }, 2500);
+setTimeout(function(){ inboxPoll(true); }, 1800);
+
+/* ---------- 收件匣：上司回覆 / 我嘅個案 ---------- */
+var INBOX={owner:false,n:0,list:[],at:0};
+function esc2(x){ return esc(String(x==null?'':x)); }
+function nl(x){ return esc2(x); }
+async function inboxPoll(force){
+  if(!PIN) return;
+  if(!force && (Date.now()-INBOX.at) < 60000) return;
+  INBOX.at=Date.now();
+  var r=await jsonp({esclist:'1', code:PIN});
+  if(!r || !r.ok) return;
+  INBOX.owner=!!r.owner; INBOX.n=r.n||0; INBOX.list=r.list||[];
+  paintInboxBtn();
+  if(document.getElementById('inbox').style.display==='flex') paintInbox();
+}
+function paintInboxBtn(){
+  var b=document.getElementById('inboxBtn');
+  if(!b) return;
+  if(INBOX.owner){
+    if(INBOX.n>0){ b.style.display='block'; b.className='nb hot'; b.textContent='⚠️ '+INBOX.n+' 單等你'; }
+    else { b.style.display='block'; b.className='nb'; b.textContent='📬 待辦'; }
+  } else {
+    if(INBOX.n>0){ b.style.display='block'; b.className='nb hot'; b.textContent='📬 上司覆咗你 '+INBOX.n+' 單'; }
+    else if(INBOX.list.length){ b.style.display='block'; b.className='nb'; b.textContent='📬 我嘅個案'; }
+    else { b.style.display='none'; }
+  }
+}
+function inboxOpen(){
+  document.getElementById('inbox').style.display='flex';
+  document.getElementById('inboxTtl').textContent = INBOX.owner ? '⚠️ 等你決定' : '📬 我嘅個案';
+  paintInbox();
+  inboxPoll(true);
+}
+function inboxClose(){ document.getElementById('inbox').style.display='none'; }
+function paintInbox(){
+  var b=document.getElementById('inboxBody');
+  var L=INBOX.list||[];
+  if(!L.length){
+    b.innerHTML = INBOX.owner
+      ? '<div class="ib-empty">冇嘢等你決定 👍<br>店員交上嚟就會出現喺呢度。</div>'
+      : '<div class="ib-empty">你未交過個案。<br>搞唔掂就撳下面「⚠️ 交上司」。</div>';
+    return;
+  }
+  var h='';
+  for(var i=0;i<L.length;i++){
+    var x=L[i];
+    if(INBOX.owner){
+      h+='<div class="ib-card"><div class="ib-top"><span class="ib-id">'+esc2(x.id)+'</span>'
+       + '<span class="ib-cat">'+esc2(x.cat)+'</span>'
+       + (x.mood?'<span class="ib-mood">'+esc2(x.mood)+'</span>':'')
+       + '<span class="ib-when">'+esc2(x.t)+'</span></div>'
+       + '<div class="ib-line"><b>'+esc2(x.store)+'</b>　'+esc2(x.staff)+(x.who?('　·　'+esc2(x.who)):'')+'</div>'
+       + '<div class="ib-detail">'+nl(x.detail)+'</div>'
+       + (x.sug?'<div class="ib-line">店員建議：<b>'+esc2(x.sug)+'</b></div>':'')
+       + '<textarea class="ib-ta" id="rt_'+esc2(x.id)+'" placeholder="打你嘅決定…"></textarea>'
+       + '<button class="ib-send" data-id="'+esc2(x.id)+'">送出決定</button>'
+       + '<div id="rr_'+esc2(x.id)+'"></div></div>';
+    } else {
+      var isNew = x.ans && !x.seen;
+      h+='<div class="ib-card'+(isNew?' ib-new':'')+'"><div class="ib-top"><span class="ib-id">'+esc2(x.id)+'</span>'
+       + '<span class="ib-cat">'+esc2(x.cat)+'</span>'
+       + '<span class="ib-when">'+esc2(x.t)+'</span></div>'
+       + '<div class="ib-detail">'+nl(x.detail)+'</div>'
+       + (x.ans
+          ? ('<div class="ib-ans"><span class="h">上司覆（'+esc2(x.at)+'）</span>'+nl(x.ans)+'</div>'
+             + (isNew ? '<button class="ib-ok" data-seen="'+esc2(x.id)+'">✓ 我知道咗，會照做</button>' : '<div class="ib-line" style="color:#a3b1ad;margin-top:6px">✓ 你已經確認咗</div>'))
+          : '<div class="ib-line" style="color:#a3b1ad;margin-top:6px">⏳ 等緊上司覆　·　今日內</div>')
+       + '</div>';
+    }
+  }
+  b.innerHTML=h;
+}
+document.getElementById('inboxBtn').addEventListener('click', inboxOpen);
+document.getElementById('inboxClose').addEventListener('click', inboxClose);
+document.getElementById('inboxBody').addEventListener('click', async function(e){
+  var t=e.target;
+  if(t && t.classList && t.classList.contains('ib-send')){
+    var id=t.getAttribute('data-id');
+    var ta=document.getElementById('rt_'+id);
+    var txt=(ta&&ta.value||'').trim();
+    var rr=document.getElementById('rr_'+id);
+    if(!txt){ rr.innerHTML='<div class="ib-line" style="color:#b8402c">要打低你嘅決定先送得出。</div>'; return; }
+    if(txt.length>800) txt=txt.slice(0,800);
+    t.disabled=true; t.textContent='送緊…';
+    var r=await jsonp({escreply:'1', code:PIN, id:id, text:txt});
+    if(!r || !r.ok){ t.disabled=false; t.textContent='送出決定'; rr.innerHTML='<div class="ib-line" style="color:#b8402c">送唔到，再撳一次。</div>'; return; }
+    rr.innerHTML='<div class="ib-ans"><span class="h">已送出</span>'+nl(txt)+'</div>';
+    t.style.display='none'; if(ta) ta.style.display='none';
+    INBOX.at=0; setTimeout(function(){ inboxPoll(true); }, 1200);
+  }
+  if(t && t.getAttribute && t.getAttribute('data-seen')){
+    var sid=t.getAttribute('data-seen');
+    t.disabled=true; t.textContent='✓ 收到';
+    await jsonp({escseen:'1', code:PIN, id:sid});
+    INBOX.at=0; setTimeout(function(){ inboxPoll(true); }, 1200);
+  }
+});
+try{
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) inboxPoll(false); });
+  window.addEventListener('focus', function(){ inboxPoll(false); });
+}catch(e){}
 
 /* ---------- boot ---------- */
 if(PIN && NAME && !STORE && PICKED){ showGate(''); hideGate(); openPick(true); }
