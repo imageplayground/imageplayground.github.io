@@ -113,10 +113,8 @@
   .seg .items{display:none;padding:0 8px 6px;}
   .seg.open .items{display:block;}
   .it{display:flex;gap:11px;align-items:flex-start;padding:10px 8px;border-top:1px solid #f0f5f3;}
-  .it .box{flex:0 0 auto;width:24px;height:24px;border-radius:7px;border:2px solid #cfe0db;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;}
-  .it.done .box{background:var(--teal);border-color:var(--teal);}
+  .it .dot{flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:var(--teal);margin-top:8px;opacity:.55;}
   .it .tx{font-size:15.5px;line-height:1.45;}
-  .it.done .tx{color:#9aa8a4;text-decoration:line-through;}
   #plan .tip{font-size:12px;color:#8a9894;text-align:center;padding:2px 10px 12px;}
   .kpi{padding:10px 12px 0;}
   .kpi-in{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e4efec;border-radius:14px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
@@ -288,7 +286,7 @@
   <div class="ph"><div class="t">📋 今日流程</div><button class="x" id="planClose">✕</button></div>
   <div class="kpi" id="kpi"></div>
   <div class="body" id="planBody"></div>
-  <div class="tip">打勾淨係方便你自己記住，每日自動清。</div>
+  <div class="tip">呢度係流程參考，唔使打勾。你做咗乜，Ivan 由 IG story、Sales Target、點貨紀錄嗰度已經睇到。</div>
 </div>
 
 <div id="recv">
@@ -390,7 +388,7 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-08-25-02';
+var APP_VER='2026-08-25-03';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -587,27 +585,19 @@ var PLAN=[
   ]}
 ];
 function today_(){ var d=new Date(); return ''+d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2); }
-function pkey_(seg,idx){ return 'img_plan_'+today_()+'_'+seg+'_'+idx; }
 function curSeg_(){ var h=new Date().getHours(); for(var i=0;i<PLAN.length;i++){ if(h>=PLAN[i].from && h<PLAN[i].to) return PLAN[i].key; } return 'day'; }
 function renderPlan(){
   var cur=curSeg_(); var body=document.getElementById('planBody'); body.innerHTML='';
   PLAN.forEach(function(seg){
-    var done=0; seg.items.forEach(function(_,i){ if(LS.getItem(pkey_(seg.key,i))==='1') done++; });
     var wrap=document.createElement('div'); wrap.className='seg'+(seg.key===cur?' open':'');
     var sh=document.createElement('div'); sh.className='sh';
-    sh.innerHTML='<span class="chev">▶</span><span>'+seg.title+'</span>'+(seg.key===cur?'<span class="now">而家</span>':'')+'<span class="cnt">'+done+'/'+seg.items.length+'</span>';
+    sh.innerHTML='<span class="chev">▶</span><span>'+seg.title+'</span>'+(seg.key===cur?'<span class="now">而家</span>':'')+'<span class="cnt">'+seg.items.length+' 項</span>';
     sh.onclick=function(){ wrap.classList.toggle('open'); };
     wrap.appendChild(sh);
     var items=document.createElement('div'); items.className='items';
     seg.items.forEach(function(txt,i){
-      var on=LS.getItem(pkey_(seg.key,i))==='1';
-      var it=document.createElement('div'); it.className='it'+(on?' done':'');
-      it.innerHTML='<div class="box">'+(on?'✓':'')+'</div><div class="tx">'+esc(txt)+'</div>';
-      it.onclick=function(){
-        var now=LS.getItem(pkey_(seg.key,i))==='1';
-        if(now){ LS.removeItem(pkey_(seg.key,i)); } else { LS.setItem(pkey_(seg.key,i),'1'); }
-        renderPlan();
-      };
+      var it=document.createElement('div'); it.className='it';
+      it.innerHTML='<div class="dot"></div><div class="tx">'+esc(txt)+'</div>';
       items.appendChild(it);
     });
     wrap.appendChild(items); body.appendChild(wrap);
@@ -871,7 +861,7 @@ function cntPaintOwner(r){
   for(var i=0;i<sts.length;i++){
     var s=sts[i];
     var pill, cls;
-    if(!s.planned){ pill='今日未出清單'; cls='none'; }
+    if(!s.planned){ pill='今日未有人開過'; cls='none'; }
     else if(s.done>=s.planned){ pill='✓ 點晒 '+s.done+'/'+s.planned; cls='done'; }
     else if(s.done>0){ pill='點緊 '+s.done+'/'+s.planned; cls='part'; }
     else { pill='未開始 0/'+s.planned; cls='none'; }
