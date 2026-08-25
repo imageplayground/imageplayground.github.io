@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-08-24-02:-->
+<!DOCTYPE html><!--APPVER:2026-08-25-01:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -63,7 +63,13 @@
     header{gap:7px;}
     header button.plan-btn, header button.recv-btn, header button.brk-btn{padding:6px 10px;font-size:17px;}
     header .bt{display:none;}
-    header .badge{flex:0 0 auto;}
+    header .badge{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  }
+  @media (max-width:430px){
+    header{gap:5px;padding-left:9px;padding-right:9px;}
+    header button.plan-btn, header button.recv-btn, header button.brk-btn{padding:6px 7px;font-size:16px;}
+    header img{width:26px;height:26px;}
+    header .badge{font-size:12px;padding:5px 7px;max-width:74px;}
   }
   header .badge.tapin{background:rgba(255,255,255,.34);}
 
@@ -128,11 +134,11 @@
   header .badge{max-width:32vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   header .recv-btn{background:rgba(255,255,255,.2);border:0;color:#fff;font-size:14px;font-weight:800;padding:6px 11px;border-radius:10px;white-space:nowrap;}
   header .recv-btn:active{background:rgba(255,255,255,.34);}
-  #recv,#brk,#promo,#esc,#inbox{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
-  #recv .ph,#brk .ph,#promo .ph,#esc .ph,#inbox .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
-  #recv .ph .t,#brk .ph .t,#promo .ph .t,#esc .ph .t,#inbox .ph .t{font-size:17px;font-weight:800;}
-  #recv .ph .x,#brk .ph .x,#promo .ph .x,#esc .ph .x,#inbox .ph .x{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:16px;font-weight:800;width:34px;height:34px;border-radius:10px;}
-  #recv .body,#brk .body,#promo .body,#esc .body,#inbox .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(20px + env(safe-area-inset-bottom));}
+  #recv,#brk,#promo,#esc,#inbox,#cnt{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;}
+  #recv .ph,#brk .ph,#promo .ph,#esc .ph,#inbox .ph,#cnt .ph{background:var(--teal);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+  #recv .ph .t,#brk .ph .t,#promo .ph .t,#esc .ph .t,#inbox .ph .t,#cnt .ph .t{font-size:17px;font-weight:800;}
+  #recv .ph .x,#brk .ph .x,#promo .ph .x,#esc .ph .x,#inbox .ph .x,#cnt .ph .x{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;font-size:16px;font-weight:800;width:34px;height:34px;border-radius:10px;}
+  #recv .body,#brk .body,#promo .body,#esc .body,#inbox .body,#cnt .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(20px + env(safe-area-inset-bottom));}
   .rv-intro{font-size:13px;line-height:1.55;color:#5b6b68;background:#fff7ec;border:1px solid #f0dcc0;border-radius:12px;padding:11px 13px;margin-bottom:12px;}
   .rv-intro b{color:var(--coral);}
   .rv-card{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:13px 14px;margin-bottom:11px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
@@ -185,7 +191,7 @@
   .ib-ok{width:100%;margin-top:9px;background:#fff;border:1.5px solid var(--teal);color:var(--teal2);font-size:14px;font-weight:800;padding:10px;border-radius:11px;}
   .ib-new{border-color:var(--coral);box-shadow:0 0 0 2px rgba(224,91,72,.12);}
   .ib-empty{font-size:14px;line-height:1.6;color:#5b6b68;background:#fff;border:1px solid #e4efec;border-radius:14px;padding:18px;text-align:center;}
-  /* ---------- 交上司 ---------- */
+  /* ---------- 交 Ivan ---------- */
   #escbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 12px 0;}
   #escbar .t{font-size:12.5px;color:#8a9a96;}
   #escbar button{margin-left:auto;background:#fff3ef;border:1px solid #f0c9bd;color:#b8402c;font-size:13px;font-weight:800;padding:6px 12px;border-radius:10px;}
@@ -210,6 +216,24 @@
   .pm-empty{font-size:14px;line-height:1.6;color:#5b6b68;background:#fff;border:1px solid #e4efec;border-radius:14px;padding:16px;text-align:center;}
   .rv-file{width:100%;font-size:14px;}
   .rv-thumb img{max-width:130px;border-radius:8px;margin-top:8px;display:block;}
+
+  /* ---------- 點貨 ---------- */
+  #cnt .ct-intro{font-size:13.5px;line-height:1.6;color:#5b6b68;background:#eef7f5;border:1px solid #cfe6e1;border-radius:12px;padding:11px 13px;margin-bottom:12px;}
+  #cnt .ct-again{font-size:14px;line-height:1.6;color:#b8402c;background:#fdf3f0;border:1.5px solid #f0c9bd;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:700;}
+  .ct-card{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:12px 13px;margin-bottom:9px;display:flex;align-items:center;gap:12px;}
+  .ct-card.cam{border-left:5px solid var(--coral);}
+  .ct-card.flm{border-left:5px solid var(--teal);}
+  .ct-info{flex:1;min-width:0;}
+  .ct-nm{font-size:14.5px;font-weight:800;line-height:1.35;word-break:break-word;}
+  .ct-sub{font-size:11.5px;color:#8a9a96;margin-top:3px;}
+  .ct-in{width:78px;flex:0 0 78px;font-size:20px;font-weight:800;text-align:center;padding:9px 4px;border:2px solid #d6e6e2;border-radius:12px;background:#fbfefd;color:var(--ink);}
+  .ct-in:focus{outline:0;border-color:var(--teal);}
+  .ct-in.miss{border-color:var(--coral);background:#fff5f2;}
+  #cnt .ct-go{width:100%;margin-top:6px;padding:15px;border:0;border-radius:14px;background:var(--teal);color:#fff;font-size:17px;font-weight:900;}
+  #cnt .ct-go:disabled{background:#b8d6d0;}
+  #cnt .ct-done{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:20px 16px;text-align:center;font-size:15px;line-height:1.7;color:#3d4b48;}
+  #cnt .ct-done b{font-size:19px;}
+  #cnt .ct-warn{margin-top:10px;background:#fdf3f0;border:1px solid #f0c9bd;border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.6;color:#b8402c;text-align:left;}
 </style>
 </head>
 <body>
@@ -221,11 +245,12 @@
     <button class="recv-btn" id="recvBtn">📦<span class="bt"> 收貨</span></button>
     <button class="recv-btn" id="brkBtn">🔧<span class="bt"> 壞機</span></button>
     <button class="recv-btn" id="promoBtn">🎫<span class="bt"> 優惠</span></button>
+    <button class="recv-btn" id="cntBtn">🔢<span class="bt"> 點貨</span></button>
     <div class="badge" id="badge"></div>
   </header>
   <div id="notice"></div>
   <div id="msgs"></div>
-  <div id="escbar"><button class="nb" id="inboxBtn" style="display:none">📬</button><div class="t">搞唔掂？唔好自己諗</div><button id="escBtn">⚠️ 交上司</button></div>
+  <div id="escbar"><button class="nb" id="inboxBtn" style="display:none">📬</button><div class="t">搞唔掂？唔好自己諗</div><button id="escBtn">⚠️ 交 Ivan</button></div>
   <footer>
     <textarea id="q" rows="1" placeholder="打你想問嘅嘢…" enterkeyhint="send"></textarea>
     <button id="send">問</button>
@@ -241,7 +266,7 @@
     <input id="pin" type="tel" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="＿＿＿＿">
     <div class="err" id="g_err"></div>
     <button class="go" id="g_go">開始用</button>
-    <div class="hint">每人一個碼，唔好借人。唔記得碼搵上司。</div>
+    <div class="hint">每人一個碼，唔好借人。唔記得碼搵 Ivan。</div>
   </div>
 </div>
 
@@ -260,7 +285,7 @@
 <div id="brk">
   <div class="ph"><div class="t">🔧 報壞機（在庫）</div><button class="x" id="brkClose">✕</button></div>
   <div class="body">
-    <div class="rv-intro">店入面部機用下先發現<b>壞咗</b>？喺度報。<b>Serial 一定要填</b>，影相更好（影機身 + serial 位）。報咗交上司審批，批核咗先落架 —— 你唔使自己改 Shopify。</div>
+    <div class="rv-intro">店入面部機用下先發現<b>壞咗</b>？喺度報。<b>Serial 一定要填</b>，影相更好（影機身 + serial 位）。報咗交 Ivan 審批，批核咗先落架 —— 你唔使自己改 Shopify。</div>
     <div class="rv-card">
       <div class="rv-lb">邊部機（型號 / 名）？</div>
       <input class="rv-in" id="brkModel" placeholder="例：Yashica T AF-D">
@@ -282,9 +307,9 @@
 </div>
 
 <div id="esc">
-  <div class="ph"><div class="t">⚠️ 交上司</div><button class="x" id="escClose">✕</button></div>
+  <div class="ph"><div class="t">⚠️ 交 Ivan</div><button class="x" id="escClose">✕</button></div>
   <div class="body">
-    <div class="rv-intro">搞唔掂、超出你權限、或者客人唔收貨 —— 喺度交上去。<b>上司香港時間下午 2 點前會睇到，即日覆。</b><br>交咗之後同客講：「我已經交咗上司，佢會親自跟，今日內覆你。」</div>
+    <div class="rv-intro">搞唔掂、超出你權限、或者客人唔收貨 —— 喺度交上去。<b>Ivan 香港時間下午 2 點前會睇到，即日覆。</b><br>交咗之後同客講：「我已經交咗 Ivan，佢會親自跟，今日內覆你。」</div>
     <div class="rv-card">
       <div class="es-lb">係咩事？</div>
       <select class="es-sel" id="escCat">
@@ -308,7 +333,7 @@
         <option value="發火">發火</option>
         <option value="已經走咗">已經走咗</option>
       </select>
-      <button class="es-sub" id="escSub">送出畀上司</button>
+      <button class="es-sub" id="escSub">送出畀 Ivan</button>
       <div id="escRes"></div>
     </div>
   </div>
@@ -317,6 +342,11 @@
 <div id="promo">
   <div class="ph"><div class="t">🎫 優惠碼</div><button class="x" id="promoClose">✕</button></div>
   <div class="body" id="promoBody"></div>
+</div>
+
+<div id="cnt">
+  <div class="ph"><div class="t">🔢 今日點貨</div><button class="x" id="cntClose">✕</button></div>
+  <div class="body" id="cntBody"></div>
 </div>
 
 <div id="me">
@@ -346,7 +376,7 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-08-24-02';
+var APP_VER='2026-08-25-01';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -432,7 +462,7 @@ async function tryLogin(){
   var r=await jsonp({login:'1', code:pw});
   go.disabled=false;
   if(r&&(r.error||r.timeout)){ err.textContent='網絡唔通，再試一次'; return; }
-  if(!r || !r.ok){ err.textContent='登入碼唔啱，搵上司攞返'; return; }
+  if(!r || !r.ok){ err.textContent='登入碼唔啱，搵 Ivan 攞返'; return; }
   PIN=pw; NAME=r.name||''; STORE=r.store||'';
   PICKED = !STORE;
   LS.setItem('img_pin',pw); LS.setItem('img_name',NAME); LS.setItem('img_store',STORE);
@@ -611,7 +641,7 @@ async function loadRecvList(){
           +'<input class="rv-in" id="rvs'+idx+'" placeholder="機身 Serial（例：SN12345）">'
           +'<select class="rv-sel" id="rvcd'+idx+'"><option value="">機況（揀一個）</option>'+COND_OPTS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('')+'</select>'
           +'<input class="rv-in" id="rva'+idx+'" placeholder="配件（例：原電、原盒、鏡頭蓋）">'
-          +'<div class="rv-photo" id="rvpw'+idx+'"><div class="rv-lb rv-photolb">壞機相（有相更好：影機身 + serial 位；暫時可留空，上司會跟進）</div><input class="rv-file" id="rvp'+idx+'" type="file" accept="image/*" capture="environment"><div class="rv-thumb" id="rvth'+idx+'"></div></div>'
+          +'<div class="rv-photo" id="rvpw'+idx+'"><div class="rv-lb rv-photolb">壞機相（有相更好：影機身 + serial 位；暫時可留空，Ivan 會跟進）</div><input class="rv-file" id="rvp'+idx+'" type="file" accept="image/*" capture="environment"><div class="rv-thumb" id="rvth'+idx+'"></div></div>'
         +'</details>'
         +'<button class="rv-sub" id="rvb'+idx+'">提交收貨</button>'
         +'<div id="rvr'+idx+'"></div>'
@@ -683,12 +713,12 @@ async function submitRecv(it, idx, btn){
   var r=await jsonp({receive:'1', code:PIN, row:it.row, po:it.po, blind:blind, serial:serial, acc:acc, broken:broken?'1':'0', cond:cond, photo:photoUrl});
   if(!r || !r.ok){
     btn.disabled=false; btn.textContent='提交收貨';
-    var msg=(r&&r.err==='mismatch')?'呢張 PO 對唔上你間舖，交返上司跟進。':'交唔到，網絡唔穩定，再試一次 🙏';
+    var msg=(r&&r.err==='mismatch')?'呢張 PO 對唔上你間舖，交返 Ivan 跟進。':'交唔到，網絡唔穩定，再試一次 🙏';
     res.innerHTML='<div class="rv-res diff">'+msg+'</div>'; return;
   }
   nEl.disabled=true; btn.style.display='none';
   if(r.result==='壞機'){
-    res.innerHTML='<div class="rv-res broken">⚠️ 已記錄<b>壞機</b>（serial '+esc(serial)+'）+ 相，唔會入正常庫存。已即刻通知上司，等上司批核「報廢／零件機」。你唔使再搞。</div>';
+    res.innerHTML='<div class="rv-res broken">⚠️ 已記錄<b>壞機</b>（serial '+esc(serial)+'）+ 相，唔會入正常庫存。已即刻通知 Ivan，等 Ivan 批核「報廢／零件機」。你唔使再搞。</div>';
     setTimeout(loadRecvList, 2600);
   } else if(r.result==='啱'){
     res.innerHTML='<div class="rv-res ok">✓ 收貨完成，數啱晒（'+r.blind+' '+esc(it.unit||'件')+'）。已入紀錄，唔使再搞。</div>';
@@ -699,7 +729,7 @@ async function submitRecv(it, idx, btn){
       +'<div>① <b>唔好畀佢走先</b> —— 同佢一齊再數一次</div>'
       +'<div>② 真係少咗 → 叫佢喺送貨單寫低「實收 '+r.blind+'」+ 簽名，你影張相</div>'
       +'<div>③ 送貨單影咗相就得，唔使再做嘢</div>'
-      +'</div>已經幫你入咗紀錄，上司今朝會見到，會跟供應商。<b>唔係你嘅錯。</b></div>';
+      +'</div>已經幫你入咗紀錄，Ivan 今朝會見到，會跟供應商。<b>唔係你嘅錯。</b></div>';
   }
 }
 document.getElementById('recvBtn').addEventListener('click', recvOpen);
@@ -739,7 +769,7 @@ async function submitBrk(btn){
   var r=await jsonp({breakstock:'1', code:PIN, model:model, serial:serial, cond:reason, photo:photoUrl});
   if(!r || !r.ok){ btn.disabled=false; btn.textContent='提交報壞機'; res.innerHTML='<div class="rv-res diff">交唔到，網絡唔穩定，再試一次 🙏</div>'; return; }
   btn.style.display='none';
-  res.innerHTML='<div class="rv-res broken">⚠️ 已報壞機（'+esc(model)+' · serial '+esc(serial)+'）'+(photoUrl?' + 相':'')+'。已入紀錄，上司會喺朝早 brief 見到，批核咗先落架。你唔使自己改 Shopify。</div>';
+  res.innerHTML='<div class="rv-res broken">⚠️ 已報壞機（'+esc(model)+' · serial '+esc(serial)+'）'+(photoUrl?' + 相':'')+'。已入紀錄，Ivan 會喺朝早 brief 見到，批核咗先落架。你唔使自己改 Shopify。</div>';
   setTimeout(brkReset, 3200);
 }
 document.getElementById('brkBtn').addEventListener('click', brkOpen);
@@ -778,15 +808,103 @@ async function promoLoad(force){
 function promoPaint(r){
   var b=document.getElementById('promoBody');
   var list=r.list||[];
-  var h='<div class="pm-intro">呢度係<b>可以同客講</b>嘅優惠碼。冇列喺度嘅碼<b>唔好自己開</b>，唔肯定就問上司。</div>';
+  var h='<div class="pm-intro">呢度係<b>可以同客講</b>嘅優惠碼。冇列喺度嘅碼<b>唔好自己開</b>，唔肯定就問 Ivan。</div>';
   if(!list.length){
-    h+='<div class="pm-empty">而家未有可以公開嘅優惠碼。<br>有新優惠上司會加入去，你返嚟撳一撳就見到。</div>';
+    h+='<div class="pm-empty">而家未有可以公開嘅優惠碼。<br>有新優惠 Ivan 會加入去，你返嚟撳一撳就見到。</div>';
   } else {
     for(var i=0;i<list.length;i++) h+=promoRow(list[i]);
   }
-  if(r.sheet) h+='<div class="pm-meta" style="text-align:center;margin-top:14px;"><a href="'+esc(r.sheet)+'" target="_blank" rel="noopener">✏️ 改名單（上司專用）</a></div>';
+  if(r.sheet) h+='<div class="pm-meta" style="text-align:center;margin-top:14px;"><a href="'+esc(r.sheet)+'" target="_blank" rel="noopener">✏️ 改名單（Ivan 專用）</a></div>';
   b.innerHTML=h;
 }
+
+/* ---------- 點貨 ---------- */
+var CNT={items:[],pass:1,busy:false};
+function cntOpen(){ document.getElementById('cnt').style.display='flex'; cntLoad(); }
+function cntClose(){ document.getElementById('cnt').style.display='none'; }
+async function cntLoad(){
+  var b=document.getElementById('cntBody');
+  b.innerHTML='<div class="ct-done">攞緊今日要點嘅貨…</div>';
+  var r=await jsonp({cntlist:'1', code:PIN, store:STORE});
+  if(!r || !r.ok){
+    b.innerHTML='<div class="ct-done">'+esc((r&&r.msg)||'攞唔到清單，網絡唔通？撳返 ✕ 再入一次。')+'</div>';
+    return;
+  }
+  if(r.alldone){
+    b.innerHTML='<div class="ct-done"><b>今日點完喇 ✓</b><br>'+esc(r.store)+'　'+esc(r.day)+'<br><br>聽日會有新一批。</div>';
+    return;
+  }
+  CNT.items=r.items||[]; CNT.pass=1;
+  cntPaint('');
+}
+function cntCard(x, val){
+  var cls = x.cat==='相機' ? ' cam' : (x.cat==='菲林' ? ' flm' : '');
+  var sub = [];
+  if(x.cat) sub.push(x.cat);
+  if(x.sku) sub.push('SKU '+x.sku);
+  return '<div class="ct-card'+cls+'">'
+   + '<div class="ct-info"><div class="ct-nm">'+esc(x.name)+'</div>'
+   + (sub.length?'<div class="ct-sub">'+esc(sub.join('　'))+'</div>':'')
+   + '</div>'
+   + '<input class="ct-in" type="number" inputmode="numeric" min="0" step="1" data-id="'+esc(x.id)+'" value="'+(val==null?'':esc(val))+'" placeholder="?">'
+   + '</div>';
+}
+function cntPaint(again){
+  var b=document.getElementById('cntBody');
+  var h='';
+  if(again){
+    h+='<div class="ct-again">⚠️ 呢 '+CNT.items.length+' 樣同系統對唔上。<br>麻煩再實物數多一次，唔好靠記憶，數幾多就填幾多。</div>';
+  } else {
+    h+='<div class="ct-intro">實物數一數，數幾多填幾多。<b>唔好估、唔好跳</b>。填晒先撳提交。</div>';
+  }
+  for(var i=0;i<CNT.items.length;i++) h+=cntCard(CNT.items[i], '');
+  h+='<button class="ct-go" id="ctGo">✅ 提交</button>';
+  b.innerHTML=h;
+  document.getElementById('ctGo').addEventListener('click', cntSend);
+}
+async function cntSend(){
+  if(CNT.busy) return;
+  var b=document.getElementById('cntBody');
+  var ins=b.querySelectorAll('.ct-in');
+  var arr=[], miss=0;
+  for(var i=0;i<ins.length;i++){
+    var v=String(ins[i].value).trim();
+    if(v==='' || isNaN(Number(v)) || Number(v)<0){ ins[i].classList.add('miss'); miss++; continue; }
+    ins[i].classList.remove('miss');
+    arr.push({id:ins[i].getAttribute('data-id'), q:Math.round(Number(v))});
+  }
+  if(miss){ alert('仲有 '+miss+' 樣未填。數幾多就填幾多，一個都唔可以跳。'); return; }
+  CNT.busy=true;
+  var go=document.getElementById('ctGo');
+  go.disabled=true; go.textContent='交緊…';
+  var r=await jsonp({cntsubmit:'1', code:PIN, store:STORE, pass:String(CNT.pass), data:JSON.stringify(arr)});
+  CNT.busy=false;
+  if(!r || !r.ok){
+    go.disabled=false; go.textContent='✅ 提交';
+    alert((r&&r.msg)||'交唔到，網絡唔通？再撳一次。');
+    return;
+  }
+  if(r.again && r.again.length){
+    var keep={}; for(var k=0;k<r.again.length;k++) keep[String(r.again[k])]=1;
+    var left=[]; for(var j=0;j<CNT.items.length;j++){ if(keep[String(CNT.items[j].id)]) left.push(CNT.items[j]); }
+    CNT.items=left; CNT.pass=2;
+    cntPaint(true);
+    try{ document.getElementById('cnt').querySelector('.body').scrollTop=0; }catch(e){}
+    return;
+  }
+  var h='<div class="ct-done"><b>點完喇 ✓</b><br>對咗 '+(r.okN||0)+' 樣';
+  if(r.logN) h+='　·　差少少已記錄 '+r.logN+' 樣';
+  h+='</div>';
+  if(r.hardN){
+    h+='<div class="ct-warn">⚠️ 有 '+r.hardN+' 樣差得多，已經自動交咗畀 Ivan'
+      + (r.caseId?('，個案編號 <b>'+esc(r.caseId)+'</b>'):'')
+      + '。<br>你唔使再做嘢，Ivan 覆你嘅時候會喺「📬 收件匣」出。<br><b>唔好自己改 Shopify 數量。</b></div>';
+  }
+  document.getElementById('cntBody').innerHTML=h;
+}
+document.getElementById('cntBtn').addEventListener('click', cntOpen);
+document.getElementById('cntClose').addEventListener('click', cntClose);
+
 document.getElementById('promoBtn').addEventListener('click', promoOpen);
 document.getElementById('promoClose').addEventListener('click', promoClose);
 document.getElementById('promoBody').addEventListener('click', function(e){
@@ -799,7 +917,7 @@ document.getElementById('promoBody').addEventListener('click', function(e){
   }
 });
 
-/* ---------- 交上司 ---------- */
+/* ---------- 交 Ivan ---------- */
 function escOpen(){ document.getElementById('esc').style.display='flex'; }
 function escClose(){ document.getElementById('esc').style.display='none'; }
 function escReset(){
@@ -807,12 +925,12 @@ function escReset(){
   document.getElementById('escDetail').value='';
   document.getElementById('escSug').value='';
   document.getElementById('escRes').innerHTML='';
-  var b=document.getElementById('escSub'); b.style.display='block'; b.disabled=false; b.textContent='送出畀上司';
+  var b=document.getElementById('escSub'); b.style.display='block'; b.disabled=false; b.textContent='送出畀 Ivan';
 }
 async function submitEsc(btn){
   var detail=document.getElementById('escDetail').value.trim();
   var res=document.getElementById('escRes');
-  if(!detail){ res.innerHTML='<div class="rv-res bad">要寫低發生咩事，上司先跟得到。</div>'; return; }
+  if(!detail){ res.innerHTML='<div class="rv-res bad">要寫低發生咩事，Ivan 先跟得到。</div>'; return; }
   btn.disabled=true; btn.textContent='送緊…';
   var r=await jsonp({esc:'1', code:PIN, store:STORE||'',
     cat:document.getElementById('escCat').value,
@@ -821,12 +939,12 @@ async function submitEsc(btn){
     sug:document.getElementById('escSug').value.trim(),
     mood:document.getElementById('escMood').value});
   if(!r || !r.ok){
-    btn.disabled=false; btn.textContent='送出畀上司';
+    btn.disabled=false; btn.textContent='送出畀 Ivan';
     res.innerHTML='<div class="rv-res bad">送唔到，網絡唔穩定，再撳一次。</div>';
     return;
   }
   btn.style.display='none';
-  res.innerHTML='<div class="es-res">✅ 已經交咗上司　·　編號 <b>'+esc(r.id||'')+'</b><br>同客講：「我已經交咗上司，佢會親自跟，今日內覆你。」<br><br>你唔使再等喺度，繼續做嘢就得。覆咗會喺呢個 app 彈返出嚟。</div>';
+  res.innerHTML='<div class="es-res">✅ 已經交咗 Ivan　·　編號 <b>'+esc(r.id||'')+'</b><br>同客講：「我已經交咗 Ivan，佢會親自跟，今日內覆你。」<br><br>你唔使再等喺度，繼續做嘢就得。覆咗會喺呢個 app 彈返出嚟。</div>';
   INBOX.at=0; setTimeout(function(){ inboxPoll(true); }, 1500);
   setTimeout(function(){ escReset(); escClose(); }, 4200);
 }
@@ -871,7 +989,7 @@ try{
 setTimeout(function(){ checkUpdate(false); }, 2500);
 setTimeout(function(){ inboxPoll(true); }, 1800);
 
-/* ---------- 收件匣：上司回覆 / 我嘅個案 ---------- */
+/* ---------- 收件匣：Ivan 回覆 / 我嘅個案 ---------- */
 var INBOX={owner:false,n:0,list:[],at:0};
 function esc2(x){ return esc(String(x==null?'':x)); }
 function nl(x){ return esc2(x); }
@@ -892,7 +1010,7 @@ function paintInboxBtn(){
     if(INBOX.n>0){ b.style.display='block'; b.className='nb hot'; b.textContent='⚠️ '+INBOX.n+' 單等你'; }
     else { b.style.display='block'; b.className='nb'; b.textContent='📬 待辦'; }
   } else {
-    if(INBOX.n>0){ b.style.display='block'; b.className='nb hot'; b.textContent='📬 上司覆咗你 '+INBOX.n+' 單'; }
+    if(INBOX.n>0){ b.style.display='block'; b.className='nb hot'; b.textContent='📬 Ivan 覆咗你 '+INBOX.n+' 單'; }
     else if(INBOX.list.length){ b.style.display='block'; b.className='nb'; b.textContent='📬 我嘅個案'; }
     else { b.style.display='none'; }
   }
@@ -910,7 +1028,7 @@ function paintInbox(){
   if(!L.length){
     b.innerHTML = INBOX.owner
       ? '<div class="ib-empty">冇嘢等你決定 👍<br>店員交上嚟就會出現喺呢度。</div>'
-      : '<div class="ib-empty">你未交過個案。<br>搞唔掂就撳下面「⚠️ 交上司」。</div>';
+      : '<div class="ib-empty">你未交過個案。<br>搞唔掂就撳下面「⚠️ 交 Ivan」。</div>';
     return;
   }
   var h='';
@@ -934,9 +1052,9 @@ function paintInbox(){
        + '<span class="ib-when">'+esc2(x.t)+'</span></div>'
        + '<div class="ib-detail">'+nl(x.detail)+'</div>'
        + (x.ans
-          ? ('<div class="ib-ans"><span class="h">上司覆（'+esc2(x.at)+'）</span>'+nl(x.ans)+'</div>'
+          ? ('<div class="ib-ans"><span class="h">Ivan 覆（'+esc2(x.at)+'）</span>'+nl(x.ans)+'</div>'
              + (isNew ? '<button class="ib-ok" data-seen="'+esc2(x.id)+'">✓ 我知道咗，會照做</button>' : '<div class="ib-line" style="color:#a3b1ad;margin-top:6px">✓ 你已經確認咗</div>'))
-          : '<div class="ib-line" style="color:#a3b1ad;margin-top:6px">⏳ 等緊上司覆　·　今日內</div>')
+          : '<div class="ib-line" style="color:#a3b1ad;margin-top:6px">⏳ 等緊 Ivan 覆　·　今日內</div>')
        + '</div>';
     }
   }
