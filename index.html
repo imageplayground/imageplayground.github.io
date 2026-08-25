@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-08-25-01:-->
+<!DOCTYPE html><!--APPVER:2026-08-25-02:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -233,6 +233,20 @@
   #cnt .ct-go:disabled{background:#b8d6d0;}
   #cnt .ct-done{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:20px 16px;text-align:center;font-size:15px;line-height:1.7;color:#3d4b48;}
   #cnt .ct-done b{font-size:19px;}
+  #cnt .ov-day{font-size:12.5px;color:#8a9a96;text-align:center;margin-bottom:12px;}
+  .ov-card{background:#fff;border:1px solid #e4efec;border-radius:14px;padding:13px 15px;margin-bottom:10px;}
+  .ov-top{display:flex;align-items:center;gap:10px;}
+  .ov-st{font-size:16px;font-weight:900;flex:1;}
+  .ov-pill{font-size:12px;font-weight:900;border-radius:999px;padding:4px 10px;white-space:nowrap;}
+  .ov-pill.done{background:#e7f5f1;color:#1a6f63;}
+  .ov-pill.part{background:#fdf3ea;color:#a8681f;}
+  .ov-pill.none{background:#f0f3f2;color:#8a9a96;}
+  .ov-who{font-size:12px;color:#8a9a96;margin-top:4px;}
+  .ov-d{margin-top:9px;padding-top:9px;border-top:1px solid #eef4f3;font-size:13.5px;line-height:1.55;}
+  .ov-d .r{color:#b8402c;font-weight:800;}
+  .ov-d .n{color:#a8681f;font-weight:700;}
+  .ov-d .num{color:#5b6b68;font-size:12.5px;}
+  #cnt .ov-link{display:block;text-align:center;margin-top:14px;font-size:13.5px;}
   #cnt .ct-warn{margin-top:10px;background:#fdf3f0;border:1px solid #f0c9bd;border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.6;color:#b8402c;text-align:left;}
 </style>
 </head>
@@ -376,7 +390,7 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-08-25-01';
+var APP_VER='2026-08-25-02';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -476,7 +490,7 @@ document.getElementById('pin').addEventListener('keydown', function(e){ if(e.key
 function openMe(){
   document.getElementById('meName').textContent = (NAME || '') ;
   document.getElementById('meStore').textContent = (STORE ? ('而家喺 ' + STORE) : '未揀店') + '　·　版本 ' + APP_VER;
-  document.getElementById('meSwap').style.display = PICKED ? 'block' : 'none';
+  document.getElementById('meSwap').style.display = (PICKED || (typeof INBOX!=='undefined' && INBOX.owner)) ? 'block' : 'none';
   document.getElementById('me').classList.add('on');
 }
 function closeMe(){ document.getElementById('me').classList.remove('on'); }
@@ -830,6 +844,7 @@ async function cntLoad(){
     b.innerHTML='<div class="ct-done">'+esc((r&&r.msg)||'攞唔到清單，網絡唔通？撳返 ✕ 再入一次。')+'</div>';
     return;
   }
+  if(r.owner){ cntPaintOwner(r); return; }
   if(r.alldone){
     b.innerHTML='<div class="ct-done"><b>今日點完喇 ✓</b><br>'+esc(r.store)+'　'+esc(r.day)+'<br><br>聽日會有新一批。</div>';
     return;
@@ -848,6 +863,39 @@ function cntCard(x, val){
    + '</div>'
    + '<input class="ct-in" type="number" inputmode="numeric" min="0" step="1" data-id="'+esc(x.id)+'" value="'+(val==null?'':esc(val))+'" placeholder="?">'
    + '</div>';
+}
+function cntPaintOwner(r){
+  var b=document.getElementById('cntBody');
+  var h='<div class="ov-day">'+esc(r.day)+'　·　三間舖今日點貨情況</div>';
+  var sts=r.stores||[];
+  for(var i=0;i<sts.length;i++){
+    var s=sts[i];
+    var pill, cls;
+    if(!s.planned){ pill='今日未出清單'; cls='none'; }
+    else if(s.done>=s.planned){ pill='✓ 點晒 '+s.done+'/'+s.planned; cls='done'; }
+    else if(s.done>0){ pill='點緊 '+s.done+'/'+s.planned; cls='part'; }
+    else { pill='未開始 0/'+s.planned; cls='none'; }
+    h+='<div class="ov-card"><div class="ov-top"><div class="ov-st">'+esc(s.store)+'</div>'
+     + '<div class="ov-pill '+cls+'">'+esc(pill)+'</div></div>';
+    if(s.who) h+='<div class="ov-who">'+esc(s.who)+'　·　啱數 '+s.ok+' 樣</div>';
+    if(s.diff && s.diff.length){
+      h+='<div class="ov-d">';
+      for(var j=0;j<s.diff.length;j++){
+        var d=s.diff[j];
+        var hard=(d.status==='交上司'||d.status==='交 Ivan');
+        h+='<div><span class="'+(hard?'r':'n')+'">'+(hard?'🔴':'⚠️')+' '+esc(d.name)+'</span>'
+         + '<br><span class="num">實點 '+d.mine+'　系統 '+d.sys+'　差 '+(d.d>0?'+':'')+d.d
+         + (hard?'　·　已自動交你':'　·　已記錄')+'</span></div>';
+      }
+      if(s.esc) h+='<div class="num" style="margin-top:6px">個案編號 '+esc(s.esc)+'</div>';
+      h+='</div>';
+    } else if(s.done>0){
+      h+='<div class="ov-d"><span style="color:#1a6f63;font-weight:800">全部啱數 ✓</span></div>';
+    }
+    h+='</div>';
+  }
+  if(r.sheet) h+='<a class="ov-link" href="'+esc(r.sheet)+'" target="_blank" rel="noopener">📄 開晒紀錄表</a>';
+  b.innerHTML=h;
 }
 function cntPaint(again){
   var b=document.getElementById('cntBody');
