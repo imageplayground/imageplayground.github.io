@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-08-25-02:-->
+<!DOCTYPE html><!--APPVER:2026-09-10-01:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -388,7 +388,7 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-08-25-03';
+var APP_VER='2026-09-10-01';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -478,6 +478,7 @@ async function tryLogin(){
   PIN=pw; NAME=r.name||''; STORE=r.store||'';
   PICKED = !STORE;
   LS.setItem('img_pin',pw); LS.setItem('img_name',NAME); LS.setItem('img_store',STORE);
+  try{ LS.setItem('img_all', r.all?'1':'0'); }catch(e){}
   LS.setItem('img_picked', PICKED?'1':'0');
   if(PICKED){ hideGate(); openPick(true); return; }
   startChat(true);
@@ -488,13 +489,13 @@ document.getElementById('pin').addEventListener('keydown', function(e){ if(e.key
 function openMe(){
   document.getElementById('meName').textContent = (NAME || '') ;
   document.getElementById('meStore').textContent = (STORE ? ('而家喺 ' + STORE) : '未揀店') + '　·　版本 ' + APP_VER;
-  document.getElementById('meSwap').style.display = (PICKED || (typeof INBOX!=='undefined' && INBOX.owner)) ? 'block' : 'none';
+  document.getElementById('meSwap').style.display = (PICKED || (typeof INBOX!=='undefined' && INBOX.owner) || LS.getItem('img_all')==='1') ? 'block' : 'none';
   document.getElementById('me').classList.add('on');
 }
 function closeMe(){ document.getElementById('me').classList.remove('on'); }
 function doLogout(){
   try{ LS.removeItem('img_pin'); LS.removeItem('img_name'); LS.removeItem('img_store');
-       LS.removeItem('img_picked'); LS.removeItem('img_store_day'); }catch(e){}
+       LS.removeItem('img_picked'); LS.removeItem('img_store_day'); LS.removeItem('img_all'); }catch(e){}
   PIN=''; NAME=''; STORE=''; PICKED=false;
   closeMe();
   try{ document.getElementById('pick').classList.remove('on'); }catch(e){}
@@ -834,13 +835,14 @@ async function cntLoad(){
     b.innerHTML='<div class="ct-done">'+esc((r&&r.msg)||'攞唔到清單，網絡唔通？撳返 ✕ 再入一次。')+'</div>';
     return;
   }
-  if(r.owner){ cntPaintOwner(r); return; }
+  if(r.owner){ cntPaintOwner(r); tskLoad(); return; }
   if(r.alldone){
     b.innerHTML='<div class="ct-done"><b>今日點完喇 ✓</b><br>'+esc(r.store)+'　'+esc(r.day)+'<br><br>聽日會有新一批。</div>';
-    return;
+    tskLoad(); return;
   }
   CNT.items=r.items||[]; CNT.pass=1;
   cntPaint('');
+  tskLoad();
 }
 function cntCard(x, val){
   var cls = x.cat==='相機' ? ' cam' : (x.cat==='菲林' ? ' flm' : '');
@@ -936,9 +938,10 @@ async function cntSend(){
   if(r.hardN){
     h+='<div class="ct-warn">⚠️ 有 '+r.hardN+' 樣差得多，已經自動交咗畀 Ivan'
       + (r.caseId?('，個案編號 <b>'+esc(r.caseId)+'</b>'):'')
-      + '。<br>你唔使再做嘢，Ivan 覆你嘅時候會喺「📬 收件匣」出。<br><b>唔好自己改 Shopify 數量。</b></div>';
+      + '。<br>你唔使再做嘢，Ivan 覆你嘅時候，下面會出「📬 Ivan 覆咗你」掣。<br><b>唔好自己改 Shopify 數量。</b></div>';
   }
   document.getElementById('cntBody').innerHTML=h;
+  tskLoad();
 }
 document.getElementById('cntBtn').addEventListener('click', cntOpen);
 document.getElementById('cntClose').addEventListener('click', cntClose);
@@ -1026,6 +1029,180 @@ try{
 }catch(e){}
 setTimeout(function(){ checkUpdate(false); }, 2500);
 setTimeout(function(){ inboxPoll(true); }, 1800);
+
+/* ---------- 指定點貨任務（老闆派 → 店員回報 → 老闆睇）2026-09-10 ---------- */
+var TSK={owner:false, list:[], busy:false};
+var TSK_STORES=['旺角','中環','銅鑼灣','測試'];
+function tskKey(){ return 'k'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function tskBox(){
+  var b=document.getElementById('cntBody'); if(!b) return null;
+  var box=document.getElementById('tskBox');
+  if(!box){ box=document.createElement('div'); box.id='tskBox'; b.insertBefore(box, b.firstChild); }
+  return box;
+}
+async function tskLoad(){
+  var box=tskBox(); if(!box) return;
+  box.innerHTML='<div class="ct-intro">攞緊指定點貨任務…</div>';
+  var r=await jsonp({tsklist:'1', code:PIN, store:STORE});
+  if(!r || !r.ok){
+    box.innerHTML='<div class="ct-again">攞唔到指定點貨任務：'+esc((r&&r.msg)||'網絡唔通')+'<br><button class="ib-ok" id="tkRetry">再試</button></div>';
+    var rb=document.getElementById('tkRetry'); if(rb) rb.addEventListener('click', tskLoad);
+    return;
+  }
+  TSK.owner=!!r.owner; TSK.list=r.list||[];
+  if(TSK.owner) tskPaintOwner(box); else tskPaintStaff(box);
+}
+/* ----- 店員：待點任務 ----- */
+function tskDraftKey(id){ return 'img_tsk_d_'+id; }
+function tskSubKey(id){
+  var k=''; try{ k=LS.getItem('img_tsk_s_'+id)||''; if(!k){ k=tskKey(); LS.setItem('img_tsk_s_'+id,k); } }catch(e){ k=k||tskKey(); }
+  return k;
+}
+function tskItemRow(id, x, d){
+  d=d||{};
+  var cls = x.cat==='相機' ? ' cam' : (x.cat==='菲林' ? ' flm' : '');
+  var sub=[]; if(x.cat) sub.push(x.cat); if(x.sku) sub.push('SKU '+x.sku);
+  var h='<div class="ct-card'+cls+'" style="flex-wrap:wrap" data-vid="'+esc(x.vid)+'">'
+   + '<div class="ct-info"><div class="ct-nm">'+esc(x.name)+'</div>'
+   + (sub.length?'<div class="ct-sub">'+esc(sub.join('　'))+'</div>':'')+'</div>'
+   + '<input class="ct-in tk-q" type="number" inputmode="numeric" min="0" step="1" value="'+esc(d.q==null?'':d.q)+'" placeholder="?">'
+   + '<div style="flex:1 1 100%;display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">';
+  if(x.cat==='相機'){
+    h+='<select class="tk-cond" style="flex:1 1 46%;font-size:14px;padding:8px;border:1px solid #dbe7e4;border-radius:10px">'
+      + ['未開封（未核實）','已開盒','Demo 機'].map(function(o){ return '<option'+(d.cond===o?' selected':'')+'>'+o+'</option>'; }).join('')
+      + '</select>'
+      + '<input class="tk-miss" style="flex:1 1 46%;font-size:14px;padding:8px;border:1px solid #dbe7e4;border-radius:10px" placeholder="缺配件（冇就留空）" value="'+esc(d.miss||'')+'">';
+  } else if(x.cat==='菲林'){
+    h+='<input class="tk-fdate" style="flex:1 1 46%;font-size:14px;padding:8px;border:1px solid #dbe7e4;border-radius:10px" placeholder="包裝日期，例 03/2027；兩批就 03/2027×5、06/2027×3" value="'+esc(d.fdate||'')+'">'
+      + '<select class="tk-ftype" style="flex:1 1 46%;font-size:14px;padding:8px;border:1px solid #dbe7e4;border-radius:10px">'
+      + ['到期日','生產日期','唔清楚'].map(function(o){ return '<option'+(d.ftype===o?' selected':'')+'>'+o+'</option>'; }).join('')
+      + '</select>';
+  }
+  h+='<input class="tk-anom" style="flex:1 1 100%;font-size:14px;padding:8px;border:1px solid #dbe7e4;border-radius:10px" placeholder="異常（冇就留空）" value="'+esc(d.anom||'')+'">'
+   + '</div></div>';
+  return h;
+}
+function tskPaintStaff(box){
+  var L=TSK.list||[];
+  if(!L.length){ box.innerHTML=''; return; }
+  var h='';
+  for(var i=0;i<L.length;i++){
+    var t=L[i]; var draft={}; try{ draft=JSON.parse(LS.getItem(tskDraftKey(t.id))||'{}'); }catch(e){ draft={}; }
+    h+='<div class="ov-card" id="tk_'+esc(t.id)+'" data-id="'+esc(t.id)+'"><div class="ov-top"><div class="ov-st">📋 Ivan 指定點貨</div><div class="ov-pill part">'+esc(t.id)+'</div></div>'
+     + '<div class="ct-sub" style="margin:4px 0 8px">'+esc(t.store)+'　·　'+esc(t.t)+(t.note?('　·　'+esc(t.note)):'')+'</div>'
+     + '<div class="ct-intro">實物數一數，數幾多填幾多，唔好估。密封盒<b>唔使拆</b>：包裝揀「未開封（未核實）」。菲林同一批日期可以合併寫。</div>';
+    for(var j=0;j<t.items.length;j++) h+=tskItemRow(t.id, t.items[j], draft[t.items[j].vid]);
+    h+='<button class="ct-go tk-go" data-id="'+esc(t.id)+'">✅ 交呢張任務</button><div class="tk-msg" style="margin-top:8px;color:#b8402c;font-weight:700"></div></div>';
+  }
+  box.innerHTML=h;
+  if(!box.getAttribute('data-bound')){ box.setAttribute('data-bound','1'); box.addEventListener('input', tskSaveDraft); box.addEventListener('change', tskSaveDraft); }
+  Array.prototype.forEach.call(box.querySelectorAll('.tk-go'), function(b){ b.addEventListener('click', function(){ tskSend(b.getAttribute('data-id')); }); });
+}
+function tskCollect(id){
+  var card=document.getElementById('tk_'+id); if(!card) return null;
+  var out={}, rows=card.querySelectorAll('.ct-card');
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i], g=function(c){ var e=r.querySelector(c); return e?String(e.value):''; };
+    out[r.getAttribute('data-vid')]={q:g('.tk-q'), cond:g('.tk-cond'), miss:g('.tk-miss'), fdate:g('.tk-fdate'), ftype:g('.tk-ftype'), anom:g('.tk-anom')};
+  }
+  return out;
+}
+function tskSaveDraft(e){
+  var card=e.target && e.target.closest ? e.target.closest('.ov-card') : null; if(!card) return;
+  var id=card.getAttribute('data-id'); var d=tskCollect(id);
+  try{ LS.setItem(tskDraftKey(id), JSON.stringify(d)); }catch(err){}
+}
+async function tskSend(id){
+  if(TSK.busy) return;
+  var card=document.getElementById('tk_'+id); if(!card) return;
+  var msg=card.querySelector('.tk-msg'), go=card.querySelector('.tk-go');
+  var d=tskCollect(id), arr=[], miss=0, rows=card.querySelectorAll('.ct-card');
+  for(var i=0;i<rows.length;i++){
+    var vid=rows[i].getAttribute('data-vid'), x=d[vid], q=String(x.q).trim(), inp=rows[i].querySelector('.tk-q');
+    if(q==='' || isNaN(Number(q)) || Number(q)<0 || Math.round(Number(q))!==Number(q)){ inp.classList.add('miss'); miss++; continue; }
+    inp.classList.remove('miss');
+    arr.push({vid:vid, q:Math.round(Number(q)), cond:x.cond, miss:x.miss, fdate:x.fdate, ftype:x.ftype, anom:x.anom});
+  }
+  if(miss){ msg.textContent='仲有 '+miss+' 樣未填（要 0 或以上嘅整數）。一個都唔可以跳。'; return; }
+  TSK.busy=true; go.disabled=true; go.textContent='交緊…'; msg.textContent='';
+  var sub=tskSubKey(id);
+  var r=await jsonp({tsksubmit:'1', code:PIN, store:STORE, id:id, sub:sub, data:JSON.stringify(arr)});
+  TSK.busy=false;
+  if(!r || !r.ok){
+    go.disabled=false; go.textContent='✅ 交呢張任務';
+    msg.textContent='交唔到：'+((r&&r.msg)||'網絡唔通，你填嘅數仲喺度，再撳一次。');
+    return;
+  }
+  try{ LS.removeItem(tskDraftKey(id)); LS.removeItem('img_tsk_s_'+id); }catch(e){}
+  card.innerHTML='<div class="ct-done"><b>交咗喇 ✓</b><br>任務 '+esc(id)+(r.dup?'（早前已經收到，冇重複記錄）':'　·　'+(r.n||arr.length)+' 樣')+'<br><span style="font-size:13px;color:#8a9a96">呢個係記錄，唔會改 Shopify 數量。</span></div>';
+}
+/* ----- 老闆：派任務 + 睇結果 ----- */
+function tskDraftOwner(){ var d={}; try{ d=JSON.parse(LS.getItem('img_tsk_new')||'{}'); }catch(e){ d={}; } if(!d.req) d.req=tskKey(); return d; }
+function tskPaintOwner(box){
+  var d=tskDraftOwner();
+  var h='<div class="ov-card"><div class="ov-top"><div class="ov-st">📋 派指定點貨任務</div></div>'
+   + '<div class="ct-sub" style="margin:4px 0 8px">店員喺「🔢 點貨」入面會見到；回報只作記錄，唔會改 Shopify。「測試」店只有你睇到。</div>'
+   + '<select id="tkStore" style="width:100%;font-size:15px;padding:9px;border:1px solid #dbe7e4;border-radius:10px;margin-bottom:6px">'
+   + TSK_STORES.map(function(s){ return '<option value="'+s+'"'+(d.store===s?' selected':'')+'>'+(s==='測試'?'測試（店員睇唔到）':s)+'</option>'; }).join('')+'</select>'
+   + '<textarea id="tkItems" class="ib-ta" style="margin-top:0;min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:14px" placeholder="一行一件：SKU 或 Shopify variant ID，後面可加 |相機 或 |菲林\n例：\n006002|菲林\n46632704344302|相機">'+esc(d.items||'')+'</textarea>'
+   + '<input id="tkNote" style="width:100%;font-size:14px;padding:9px;border:1px solid #dbe7e4;border-radius:10px;margin-top:6px" placeholder="備註（可留空）" value="'+esc(d.note||'')+'">'
+   + '<button class="ib-send" id="tkNew">📤 派出任務</button><div id="tkNewMsg" class="ib-line" style="margin-top:6px;color:#b8402c"></div></div>';
+  var L=TSK.list||[];
+  h+='<div class="ov-day" style="margin-top:14px">指定任務結果（最新 '+L.length+' 張）</div>';
+  if(!L.length) h+='<div class="ib-empty">未派過任務。</div>';
+  for(var i=0;i<L.length;i++){
+    var t=L[i], done=t.status==='已回報';
+    var pill=done?('✓ 已回報 '+(t.items.length-t.missing.length)+'/'+t.items.length):('待點 0/'+t.items.length);
+    h+='<div class="ov-card"><div class="ov-top"><div class="ov-st">'+esc(t.store)+'　<span class="ib-id">'+esc(t.id)+'</span></div><div class="ov-pill '+(done?'done':'none')+'">'+esc(pill)+'</div></div>'
+     + '<div class="ct-sub">派：'+esc(t.t)+' '+esc(t.by)+(t.note?('　·　'+esc(t.note)):'')+(done?('　·　回報：'+esc(t.rt)+' '+esc(t.rby)):'')+'</div>';
+    var byV={}; for(var k=0;k<(t.reps||[]).length;k++) byV[t.reps[k].vid]=t.reps[k];
+    h+='<div class="ov-d">';
+    for(var j=0;j<t.items.length;j++){
+      var x=t.items[j], rp=byV[x.vid];
+      h+='<div style="margin:6px 0"><b>'+esc(x.name)+'</b> <span class="ct-sub">'+esc(x.cat||'')+(x.sku?' · SKU '+esc(x.sku):'')+'</span><br>';
+      if(!rp){ h+='<span class="num" style="color:#a8681f">⏳ 未回報</span>'; }
+      else {
+        var bits=['實點 <b>'+esc(rp.q)+'</b>'];
+        if(rp.cond) bits.push(esc(rp.cond)); if(rp.miss) bits.push('缺：'+esc(rp.miss));
+        if(rp.fdate) bits.push(esc(rp.ftype||'日期')+' '+esc(rp.fdate)); if(rp.anom) bits.push('⚠️ '+esc(rp.anom));
+        bits.push(esc(rp.by)+' '+esc(rp.t));
+        h+='<span class="num">'+bits.join('　·　')+'</span>';
+      }
+      h+='</div>';
+    }
+    h+='</div></div>';
+  }
+  box.innerHTML=h;
+  ['tkStore','tkItems','tkNote'].forEach(function(id){ var e=document.getElementById(id); if(e){ e.addEventListener('input', tskSaveOwner); e.addEventListener('change', tskSaveOwner); } });
+  document.getElementById('tkNew').addEventListener('click', tskCreate);
+}
+function tskSaveOwner(){
+  var d=tskDraftOwner();
+  d.store=document.getElementById('tkStore').value; d.items=document.getElementById('tkItems').value; d.note=document.getElementById('tkNote').value;
+  try{ LS.setItem('img_tsk_new', JSON.stringify(d)); }catch(e){}
+}
+async function tskCreate(){
+  if(TSK.busy) return;
+  var msg=document.getElementById('tkNewMsg'), go=document.getElementById('tkNew');
+  var store=document.getElementById('tkStore').value;
+  var lines=String(document.getElementById('tkItems').value).split(/\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+  var specs=[];
+  for(var i=0;i<lines.length;i++){ var p=lines[i].split(/[|｜]/); var sp={spec:p[0].trim()}; if(p[1]) sp.cat=p[1].trim(); specs.push(sp); }
+  if(!specs.length){ msg.textContent='要至少一行貨品。'; return; }
+  if(specs.length>30){ msg.textContent='一張最多 30 項。'; return; }
+  tskSaveOwner(); var d=tskDraftOwner();
+  TSK.busy=true; go.disabled=true; go.textContent='派緊…'; msg.textContent='';
+  var r=await jsonp({tsknew:'1', code:PIN, store:store, req:d.req, items:JSON.stringify(specs), note:document.getElementById('tkNote').value});
+  TSK.busy=false;
+  if(!r || !r.ok){
+    go.disabled=false; go.textContent='📤 派出任務';
+    msg.textContent='派唔出：'+((r&&r.msg)||'網絡唔通，你打嘅嘢仲喺度，再撳一次。');
+    return;
+  }
+  try{ LS.removeItem('img_tsk_new'); }catch(e){}
+  msg.style.color='#1a6f63'; msg.textContent='已派出 '+r.id+'（'+r.store+'，'+(r.items||[]).length+' 項）'+(r.dup?'（早前已派，冇重複）':'');
+  setTimeout(tskLoad, 800);
+}
 
 /* ---------- 收件匣：Ivan 回覆 / 我嘅個案 ---------- */
 var INBOX={owner:false,n:0,list:[],at:0};
