@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-10-01:-->
+<!DOCTYPE html><!--APPVER:2026-09-19-01:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -388,7 +388,7 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-09-10-01';
+var APP_VER='2026-09-19-01';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -637,7 +637,7 @@ async function loadRecvList(){
   items.forEach(function(it,idx){
     html+='<div class="rv-card" id="rvc'+idx+'">'
       +'<div class="rv-prod">'+esc(it.product||'(未命名)')+'</div>'
-      +'<div class="rv-meta"><span>PO '+esc(it.po)+'</span>'+(it.supplier?'<span>'+esc(it.supplier)+'</span>':'')+(it.sku?'<span>SKU '+esc(it.sku)+'</span>':'')+'</div>'
+      +'<div class="rv-meta"><span>PO '+esc(it.po)+'</span>'+(it.part?'<span>⏳ 上次未收齊，今次收第二批</span>':'')+(it.supplier?'<span>'+esc(it.supplier)+'</span>':'')+(it.sku?'<span>SKU '+esc(it.sku)+'</span>':'')+'</div>'
       +'<button class="rv-open" id="rvo'+idx+'">開始收呢件</button>'
       +'<div class="rv-form" id="rvf'+idx+'">'
         +'<div class="rv-lb">實際數到幾多（'+esc(it.unit||'件')+'）？</div>'
@@ -701,7 +701,7 @@ async function submitRecv(it, idx, btn){
   var nEl=document.getElementById('rvn'+idx);
   var res=document.getElementById('rvr'+idx);
   var raw=(nEl.value||'').trim();
-  if(raw===''||isNaN(Number(raw))){ res.innerHTML='<div class="rv-res diff">入返個數先得（實際數到幾多件）。</div>'; nEl.focus(); return; }
+  if(raw===''||isNaN(Number(raw))||Number(raw)<0||Math.floor(Number(raw))!==Number(raw)){ res.innerHTML='<div class="rv-res diff">入返個數先得（實際數到幾多件）。</div>'; nEl.focus(); return; }
   var blind=Number(raw);
   var serial=(document.getElementById('rvs'+idx).value||'').trim();
   var cond=(document.getElementById('rvcd'+idx).value||'').trim();
@@ -715,21 +715,33 @@ async function submitRecv(it, idx, btn){
     photoUrl=await uploadPhoto(RECV_PHOTO[idx], serial, function(p){ btn.textContent='上載相 '+p+'%…'; });  // 盡力上傳;傳唔到都照交
   }
   btn.textContent='提交緊…';
-  var r=await jsonp({receive:'1', code:PIN, row:it.row, po:it.po, blind:blind, serial:serial, acc:acc, broken:broken?'1':'0', cond:cond, photo:photoUrl});
+  // 提交鍵：同一次收貨（包括斷網重試、連撳）永遠用同一個鍵，後端只會記一次；成功先清
+  var kk='img_rcv_k_'+it.lid, key=LS.getItem(kk);
+  if(!key){ key=tskKey(); LS.setItem(kk,key); }
+  var r=await jsonp({receive:'1', code:PIN, lid:it.lid, key:key, po:it.po, sku:it.sku, blind:blind, serial:serial, acc:acc, broken:broken?'1':'0', cond:cond, photo:photoUrl});
   if(!r || !r.ok){
     btn.disabled=false; btn.textContent='提交收貨';
-    var msg=(r&&r.err==='mismatch')?'呢張 PO 對唔上你間舖，交返 Ivan 跟進。':'交唔到，網絡唔穩定，再試一次 🙏';
-    res.innerHTML='<div class="rv-res diff">'+msg+'</div>'; return;
+    if(r && r.err && r.err!=='ex'){ try{ LS.removeItem(kk); }catch(e){} }
+    var msg=(r&&r.msg)?r.msg:((r&&r.err==='mismatch')?'呢張 PO 對唔上你間舖，交返 Ivan 跟進。':'交唔到，網絡唔穩定，再試一次 🙏（再撳唔會重複記）');
+    res.innerHTML='<div class="rv-res diff">'+esc(msg)+'</div>'; return;
   }
+  try{ LS.removeItem(kk); }catch(e){}
   nEl.disabled=true; btn.style.display='none';
   if(r.result==='壞機'){
     res.innerHTML='<div class="rv-res broken">⚠️ 已記錄<b>壞機</b>（serial '+esc(serial)+'）+ 相，唔會入正常庫存。已即刻通知 Ivan，等 Ivan 批核「報廢／零件機」。你唔使再搞。</div>';
     setTimeout(loadRecvList, 2600);
-  } else if(r.result==='啱'){
-    res.innerHTML='<div class="rv-res ok">✓ 收貨完成，數啱晒（'+r.blind+' '+esc(it.unit||'件')+'）。已入紀錄，唔使再搞。</div>';
+  } else if(r.judge==='收齊'){
+    res.innerHTML='<div class="rv-res ok">✓ 收貨完成，數啱晒（'+(r.cum!==r.blind?('今次 '+r.blind+'，連埋之前共 '+r.cum):r.blind)+' '+esc(it.unit||'件')+'）。已入紀錄，唔使再搞。</div>';
     setTimeout(loadRecvList, 2600);
+  } else if(r.judge==='疑似重複'){
+    res.innerHTML='<div class="rv-res diff">⚠️ 呢行啱啱已經有人交過。你今次嘅數（'+r.blind+'）已經記低，但<b>未計入</b>，Ivan 會睇返邊個啱。你唔使再交。</div>';
+    setTimeout(loadRecvList, 4000);
+  } else if(r.judge==='超收'){
+    res.innerHTML='<div class="rv-res diff">⚠️ 多咗：合共收到 <b>'+r.cum+'</b>，PO 只係訂 <b>'+r.expect+'</b>（多 '+(r.over||(r.cum-r.expect))+'）。'
+      +'<div class="rv-act"><div>① 同送貨嗰位再數一次；真係多咗，叫佢喺送貨單寫低實數＋簽名，影張相</div><div>② 多出嚟嘅貨<b>唔好自己上架、唔好自己改 Shopify</b>，放埋一邊</div></div>已通知 Ivan，佢會跟。<b>唔係你嘅錯。</b></div>';
+    setTimeout(loadRecvList, 6000);
   } else {
-    res.innerHTML='<div class="rv-res diff">⚠️ 數唔夾：你數到 <b>'+r.blind+'</b>，PO 應該係 <b>'+r.expect+'</b>。'
+    res.innerHTML='<div class="rv-res diff">⚠️ 數唔夾：'+(r.cum!==r.blind?('今次數到 <b>'+r.blind+'</b>，連埋之前共 <b>'+r.cum+'</b>'):('你數到 <b>'+r.blind+'</b>'))+'，PO 應該係 <b>'+r.expect+'</b>，<b>仲欠 '+r.owe+'</b>。呢行會留喺清單，遲啲貨到再收第二批。'
       +'<div class="rv-act"><b>而家即刻做（送貨嗰位仲喺度先做得到）：</b>'
       +'<div>① <b>唔好畀佢走先</b> —— 同佢一齊再數一次</div>'
       +'<div>② 真係少咗 → 叫佢喺送貨單寫低「實收 '+r.blind+'」+ 簽名，你影張相</div>'
