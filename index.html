@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-20-01:-->
+<!DOCTYPE html><!--APPVER:2026-09-21-01:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -178,7 +178,7 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-09-20-01';
+var APP_VER='2026-09-21-01';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -867,22 +867,24 @@ async function stkOwner(){
   var r=await jsonp({stprogress:'1', code:PIN});
   if(!r || !r.ok || !r.boss) return;
   var rot=await jsonp({strotate:'1', code:PIN});
-  var nextBy={};
-  if(rot && rot.ok && rot.stores) for(var q=0;q<rot.stores.length;q++){ var x=rot.stores[q]; if(x.ok) nextBy[x.store]=x; }
+  var ROTS=(rot && rot.ok && rot.stores) ? rot.stores : [];
+  var SNAME={CEN:'中環', MK:'旺角', CWB:'銅鑼灣'};
   var b=document.getElementById('cntBody'); if(!b) return;
   var h='<div class="ov-day">📦 盤點（第 1 期：只出差異，唔會改 Shopify）</div>';
   var sts=r.stores||[], stale={};
-  for(var i=0;i<(r.stale||[]).length;i++) stale[r.stale[i].store]=r.stale[i];
+  for(var i=0;i<(r.stale||[]).length;i++){ var st0=r.stale[i]; stale[st0.store]=st0; }
   for(var j=0;j<sts.length;j++){
-    var s=sts[j], nm=s.store||'', sl=stale[nm]||{}, pill, cls;
+    /* 後端兩個 API 都係跟 CEN／MK／CWB 同一次序，所以用位置對返；冇進行中盤點嗰陣後端唔會回店名 */
+    var s=sts[j], nx=ROTS[j]||null;
+    var code=s.store || (nx&&nx.store) || ['CEN','MK','CWB'][j] || '';
+    var nm=SNAME[code]||code, sl=stale[code]||stale[nm]||{}, pill, cls;
     if(s.none){ pill='冇進行中盤點'; cls='none'; }
     else if(s.todo===0){ pill='✓ 點晒 '+s.counted+'/'+s.total; cls='done'; }
     else { pill='點緊 '+s.counted+'/'+s.total; cls='part'; }
     h+='<div class="ov-card"><div class="ov-top"><div class="ov-st">'+esc(nm)+'</div>'
      + '<div class="ov-pill '+cls+'">'+esc(pill)+'</div></div>';
     if(sl.stale) h+='<div class="ov-d"><span class="r">🔴 '+(sl.days==null?'從來冇交過點貨數':('已經 '+sl.days+' 日冇交過點貨數'))+'</span></div>';
-    var nx=nextBy[nm];
-    if(nx) h+='<div class="ov-d"><span class="num">📆 今日輪到 <b>'+esc(nx.vendor)+'</b>（第 '+nx.seq+'／'+nx.total+' 個牌子'
+    if(nx && nx.ok) h+='<div class="ov-d"><span class="num">📆 今日輪到 <b>'+esc(nx.vendor)+'</b>（第 '+nx.seq+'／'+nx.total+' 個牌子'
       + (nx.lastDays==null?'，未點過':('，上次 '+nx.lastDays+' 日前'))+'）</span>'
       + (s.none?'<br><button class="ct-go" style="margin-top:8px" data-rot="'+esc(nm)+'" data-vendor="'+esc(nx.vendor)+'">開「'+esc(nx.vendor)+'」盤點</button>':'')
       + '</div>';
