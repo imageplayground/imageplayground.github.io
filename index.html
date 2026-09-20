@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-21-05:-->
+<!DOCTYPE html><!--APPVER:2026-09-21-06:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -766,6 +766,9 @@ async function stkPeek(){
   d.innerHTML='📦 <b>而家有盤點進行緊</b>　·　'+esc(r.scope||'全店')+'<br>剩 <b>'+left+'</b> 樣未點（已點 '+(r.counted||0)+'／'+(r.total||0)+'）<br><u>撳呢度開始</u>';
   d.addEventListener('click', stkOpen);
   b.insertBefore(d, b.firstChild);
+  /* 有盤點做緊就直接入盤點：唔好迫店員喺一堆「今日點貨」相機入面搵。
+     一個 app session 只自動入一次，佢自己撳 ✕ 出返嚟就唔會再彈。 */
+  if(!STK.autoed){ STK.autoed=1; stkOpen(); }
 }
 
 function stkWhy(r){
@@ -800,7 +803,8 @@ function stkPaint(r){
   for(var i=0;i<STK.items.length;i++){ if(STK.items[i].recount) rec++; if(STK.items[i].blind) bl++; }
   var h='<div class="ct-intro">📦 '+esc(r.name||r.scope||'盤點')+'　·　'+esc(r.store||STORE)+'　·　仲有 <b>'+STK.left+'</b> 樣<br>'
       + '同系統一樣就撳 <b>👍</b>；唔一樣就填實際數量。<b>唔好估、唔好跳。</b></div>'
-      + '<input class="ct-in st-q" id="stQ" type="search" placeholder="🔍 搵產品／SKU／條碼（可以用掃碼槍）" value="'+esc(STK.q||'')+'" style="width:100%;margin-bottom:10px;text-align:left">';
+      + '<input class="ct-in st-q" id="stQ" type="search" placeholder="🔍 搵產品／SKU／條碼（可以用掃碼槍）" value="'+esc(STK.q||'')+'" style="width:100%;margin-bottom:10px;text-align:left">'
+      + '<button class="ct-go" id="stBackDay" style="background:#eef7f5;color:#3d6b64;font-size:14px;font-weight:800;padding:10px;margin:0 0 10px">↩︎ 唔做盤點，去「今日點貨」</button>';
   if(rec) h+='<div class="ct-again">⚠️ 其中 '+rec+' 樣係<b>覆點</b>（上次同系統對唔上），麻煩再實物數一次。</div>';
   if(bl) h+='<div class="ct-again">🔒 其中 '+bl+' 樣係<b>抽查</b>：唔會顯示系統數，一定要實物數過先填。</div>';
   for(var j=0;j<STK.items.length;j++){
@@ -820,6 +824,8 @@ function stkPaint(r){
   h+='<button class="ct-go" id="stGo">✅ 交呢一批</button>';
   b.innerHTML=h;
   document.getElementById('stGo').addEventListener('click', stkSend);
+  var bk=document.getElementById('stBackDay');
+  if(bk) bk.addEventListener('click', stkClose);
   var qEl=document.getElementById('stQ');
   qEl.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); stkLoad(qEl.value.trim()); } });
   var sames=b.querySelectorAll('.st-same');
