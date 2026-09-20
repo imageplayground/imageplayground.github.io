@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-21-06:-->
+<!DOCTYPE html><!--APPVER:2026-09-21-07:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -178,7 +178,14 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-09-21-04';
+/* 版本號只有一個來源：檔案第一行嗰個 APPVER 註解。
+   以前呢度係人手寫死，改完檔頭唔記得改呢度 → 部機永遠以為自己落後、
+   「版本」顯示又錯。以後自動讀，唔會再走位。 */
+var APP_VER=(function(){
+  try{ for(var i=0;i<document.childNodes.length;i++){ var n=document.childNodes[i];
+    if(n.nodeType===8){ var m=String(n.nodeValue).match(/APPVER:([^:]+):/); if(m) return m[1]; } } }catch(e){}
+  return '?';
+})();
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
