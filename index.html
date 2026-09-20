@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-21-08:-->
+<!DOCTYPE html><!--APPVER:2026-09-21-09:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -312,11 +312,24 @@ function doLogout(){
 document.getElementById('meClose').addEventListener('click', closeMe);
 document.getElementById('me').addEventListener('click', function(e){ if(e.target.id==='me') closeMe(); });
 document.getElementById('meSwap').addEventListener('click', function(){ closeMe(); openPick(false); });
-document.getElementById('meUpd').addEventListener('click', function(){
+/* 呢粒掣以前唔理結果，3 秒後一定顯示「已經係最新版 ✓」→ 更新失敗都照打剔，呃人。
+   而家實打實講返：查到幾多版、有冇更新到。 */
+document.getElementById('meUpd').addEventListener('click', async function(){
   var b=this; b.textContent='檢查緊…'; b.disabled=true;
   try{ LS.removeItem('img_upd_tried'); LS.removeItem('img_upd_at'); }catch(e){}
-  checkUpdate(true);
-  setTimeout(function(){ b.textContent='已經係最新版 ✓'; setTimeout(function(){ b.textContent='🔄 更新到最新版'; b.disabled=false; }, 1800); }, 3000);
+  UPD_BUSY=false;
+  var ver='';
+  try{
+    var rr=await fetch(location.pathname+'?u='+Date.now(), {cache:'no-store'});
+    if(rr.ok){ var mm=(await rr.text()).match(/APPVER:([^:]+):/); if(mm) ver=mm[1]; }
+  }catch(e){}
+  if(ver && ver!==APP_VER){
+    b.textContent='更新緊 → '+ver;
+    location.replace(location.pathname+'?v='+encodeURIComponent(ver)+'&r='+Date.now());
+    return;
+  }
+  b.textContent = ver ? ('已經係最新版 '+ver+' ✓') : '查唔到，網絡唔通';
+  setTimeout(function(){ b.textContent='🔄 更新到最新版'; b.disabled=false; }, 2600);
 });
 document.getElementById('meOut').addEventListener('click', doLogout);
 
@@ -640,7 +653,7 @@ async function cntOpen(){
   b.innerHTML='<div class="ct-done">看緊今日要做咗乃…</div>';
   /* 有盤點就直接入盤點，唔好畫住每日點貨（否則店員會見到成版相機先） */
   var r=null; try{ r=await stkPeekGet(false); }catch(e){}
-  if(stkActive(r) && !STK.autoed){ STK.autoed=1; stkOpen(); }
+  if(stkActive(r) && !stkSkipped()){ stkOpen(); }
   cntLoad();
 }
 function cntClose(){ document.getElementById('cnt').style.display='none'; }
@@ -765,7 +778,7 @@ document.getElementById('cntBtn').addEventListener('click', cntOpen);
 document.getElementById('cntClose').addEventListener('click', cntClose);
 
 /* ---------- 盤點（第 1 期：唔會改 Shopify）2026-09-20 ---------- */
-var STK={sid:'',items:[],keys:{},same:{},busy:false,left:0,ckey:'',size:25,opened:0,q:'',peek:null,peekAt:0};
+var STK={sid:'',items:[],keys:{},same:{},busy:false,left:0,ckey:'',size:25,opened:0,q:'',peek:null,peekAt:0,skipAuto:0};
 /* 有冇盤點做緊：預先查定，唔好等撳咗「點貨」先查。
    之前係畫完成版每日點貨（相機）先至查，店員要對住堵相機牆 5、6 秒先跳到盤點。 */
 async function stkPeekGet(force){
@@ -774,6 +787,9 @@ async function stkPeekGet(force){
   if(r && r.ok){ STK.peek=r; STK.peekAt=Date.now(); }
   return r;
 }
+/* 幾時先唔自動入盤點：只有店員自己撳咗「唔做盤點，去今日點貨」先算，而且只擋 10 分鐘。
+   （舊寫法係「一個 session 只入一次」→ 出返去再入就唔再跳，變返相機清單。Ivan 撞到。）*/
+function stkSkipped(){ return !!(STK.skipAuto && (Date.now()-STK.skipAuto) < 600000); }
 function stkActive(r){
   if(!r || !r.ok || r.none || r.boss) return false;
   var left=(r.todo||0)+(r.recount||0);
@@ -793,9 +809,6 @@ async function stkPeek(){
   d.innerHTML='📦 <b>而家有盤點進行緊</b>　·　'+esc(r.scope||'全店')+'<br>剩 <b>'+left+'</b> 樣未點（已點 '+(r.counted||0)+'／'+(r.total||0)+'）<br><u>撳呢度開始</u>';
   d.addEventListener('click', stkOpen);
   b.insertBefore(d, b.firstChild);
-  /* 有盤點做緊就直接入盤點：唔好迫店員喺一堆「今日點貨」相機入面搵。
-     一個 app session 只自動入一次，佢自己撳 ✕ 出返嚟就唔會再彈。 */
-  if(!STK.autoed){ STK.autoed=1; stkOpen(); }
 }
 
 function stkWhy(r){
@@ -852,7 +865,7 @@ function stkPaint(r){
   b.innerHTML=h;
   document.getElementById('stGo').addEventListener('click', stkSend);
   var bk=document.getElementById('stBackDay');
-  if(bk) bk.addEventListener('click', stkClose);
+  if(bk) bk.addEventListener('click', function(){ STK.skipAuto=Date.now(); stkClose(); });
   var qEl=document.getElementById('stQ');
   qEl.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); stkLoad(qEl.value.trim()); } });
   var sames=b.querySelectorAll('.st-same');
