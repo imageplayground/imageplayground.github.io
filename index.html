@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-21-07:-->
+<!DOCTYPE html><!--APPVER:2026-09-21-08:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -634,7 +634,15 @@ function promoPaint(r){
 
 /* ---------- 點貨 ---------- */
 var CNT={items:[],pass:1,busy:false};
-function cntOpen(){ document.getElementById('cnt').style.display='flex'; cntLoad(); }
+async function cntOpen(){
+  document.getElementById('cnt').style.display='flex';
+  var b=document.getElementById('cntBody');
+  b.innerHTML='<div class="ct-done">看緊今日要做咗乃…</div>';
+  /* 有盤點就直接入盤點，唔好畫住每日點貨（否則店員會見到成版相機先） */
+  var r=null; try{ r=await stkPeekGet(false); }catch(e){}
+  if(stkActive(r) && !STK.autoed){ STK.autoed=1; stkOpen(); }
+  cntLoad();
+}
 function cntClose(){ document.getElementById('cnt').style.display='none'; }
 async function cntLoad(){
   var b=document.getElementById('cntBody');
@@ -757,16 +765,28 @@ document.getElementById('cntBtn').addEventListener('click', cntOpen);
 document.getElementById('cntClose').addEventListener('click', cntClose);
 
 /* ---------- 盤點（第 1 期：唔會改 Shopify）2026-09-20 ---------- */
-var STK={sid:'',items:[],keys:{},same:{},busy:false,left:0,ckey:'',size:25,opened:0,q:''};
+var STK={sid:'',items:[],keys:{},same:{},busy:false,left:0,ckey:'',size:25,opened:0,q:'',peek:null,peekAt:0};
+/* 有冇盤點做緊：預先查定，唔好等撳咗「點貨」先查。
+   之前係畫完成版每日點貨（相機）先至查，店員要對住堵相機牆 5、6 秒先跳到盤點。 */
+async function stkPeekGet(force){
+  if(!force && STK.peek && (Date.now()-STK.peekAt) < 60000) return STK.peek;
+  var r=await jsonp({stprogress:'1', code:PIN, store:STORE});
+  if(r && r.ok){ STK.peek=r; STK.peekAt=Date.now(); }
+  return r;
+}
+function stkActive(r){
+  if(!r || !r.ok || r.none || r.boss) return false;
+  var left=(r.todo||0)+(r.recount||0);
+  return !!(left || r.status==='進行中');
+}
 function stkOpen(){ document.getElementById('stk').style.display='flex'; stkLoad(); }
 function stkClose(){ document.getElementById('stk').style.display='none'; }
 
 /* 店員：喺點貨面板頂顯示「而家有盤點」 */
 async function stkPeek(){
-  var r=await jsonp({stprogress:'1', code:PIN, store:STORE});
-  if(!r || !r.ok || r.none || r.boss) return;
+  var r=await stkPeekGet(false);
+  if(!stkActive(r)) return;
   var left=(r.todo||0)+(r.recount||0);
-  if(!left && r.status!=='進行中') return;
   var b=document.getElementById('cntBody'); if(!b) return;
   var d=document.createElement('div');
   d.className='ct-again'; d.style.cursor='pointer';
@@ -1081,6 +1101,8 @@ try{
 }catch(e){}
 setTimeout(function(){ checkUpdate(false); }, 2500);
 setTimeout(function(){ inboxPoll(true); }, 1800);
+/* 開 app 即刻預查有冇盤點，等撳「點貨」嗰陣唔使等 */
+setTimeout(function(){ try{ if(PIN && STORE) stkPeekGet(true); }catch(e){} }, 900);
 
 /* ---------- 指定點貨任務（老闆派 → 店員回報 → 老闆睇）2026-09-10 ---------- */
 var TSK={owner:false, list:[], busy:false};
