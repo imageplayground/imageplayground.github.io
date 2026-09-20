@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-21-03:-->
+<!DOCTYPE html><!--APPVER:2026-09-21-04:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -178,7 +178,7 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-09-21-03';
+var APP_VER='2026-09-21-04';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -789,7 +789,8 @@ async function stkLoad(q){
   STK.sid=r.sid; STK.items=r.items; STK.left=r.left||r.items.length; STK.keys={}; STK.same={}; STK.opened=Date.now(); STK.q=q||'';
   for(var i=0;i<STK.items.length;i++){
     /* 提交鍵：每項一個，重交用返同一個 → 後端唔會重複記 */
-    STK.keys[STK.items[i].lid]=STK.sid+':'+STK.items[i].lid+':'+STK.items[i].round+':'+Math.random().toString(36).slice(2,10);
+    /* 提交鍵要短：JSONP 用 GET，成串嘢塞喺網址，太長 Google 會拒收 */
+    STK.keys[STK.items[i].lid]=STK.items[i].round+'x'+Math.random().toString(36).slice(2,8);
   }
   stkPaint(r);
 }
@@ -833,35 +834,55 @@ function stkSame(e){
 }
 async function stkSend(){
   if(STK.busy) return;
-  var b=document.getElementById('stkBody'), ins=b.querySelectorAll('.st-in'), arr=[], miss=0;
+  var b=document.getElementById('stkBody'), ins=b.querySelectorAll('.st-in'), list=[], miss=0;
   for(var i=0;i<ins.length;i++){
     var lid=ins[i].getAttribute('data-lid');
-    if(STK.same[lid]){ arr.push({lid:lid, same:'1', key:STK.keys[lid]}); continue; }
+    if(STK.same[lid]){ list.push({lid:lid, v:'s', key:STK.keys[lid]}); continue; }
     var v=String(ins[i].value).trim();
     if(v==='' || isNaN(Number(v)) || Number(v)<0){ ins[i].classList.add('miss'); miss++; continue; }
     ins[i].classList.remove('miss');
-    arr.push({lid:lid, qty:Math.round(Number(v)), key:STK.keys[lid]});
+    list.push({lid:lid, v:String(Math.round(Number(v))), key:STK.keys[lid]});
   }
   if(miss){ alert('仲有 '+miss+' 樣未搞掂。同系統一樣就撳 👍，唔一樣就填數，一個都唔可以跳。'); return; }
+
+  /* 分批：JSONP 用 GET，網址有長度上限（17 件一次過會爆），所以每批夾埋唔超過 900 字 */
+  var chunks=[], cur=[], len=0;
+  for(var j=0;j<list.length;j++){
+    var piece=list[j].lid+'~'+list[j].v+'~'+list[j].key;
+    if(len+piece.length>900 && cur.length){ chunks.push(cur); cur=[]; len=0; }
+    cur.push(piece); len+=piece.length+1;
+  }
+  if(cur.length) chunks.push(cur);
+
   STK.busy=true;
-  var go=document.getElementById('stGo'); go.disabled=true; go.textContent='交緊…';
-  var r=await jsonp({stsubmit:'1', code:PIN, store:STORE, sid:STK.sid, opened:String(STK.opened||''), items:JSON.stringify(arr)});
+  var go=document.getElementById('stGo'); go.disabled=true;
+  var all=[], saved=0, left=0, bad=null;
+  for(var c=0;c<chunks.length;c++){
+    go.textContent=chunks.length>1 ? ('交緊… ('+(c+1)+'/'+chunks.length+')') : '交緊…';
+    var r=await jsonp({stsubmit:'1', code:PIN, store:STORE, sid:STK.sid, opened:String(STK.opened||''), items:chunks[c].join(',')});
+    if(!r || !r.ok){ bad={r:r, at:c}; break; }
+    all=all.concat(r.items||[]); saved+=(r.saved||0); left=(r.left!=null?r.left:left);
+  }
   STK.busy=false;
-  if(!r || !r.ok){ go.disabled=false; go.textContent='✅ 交呢一批'; alert('交唔到：'+stkWhy(r)+'\n\n再撳一次唔會重複記。'); return; }
-  var okN=0, recN=0, bossN=0, badN=0, it=r.items||[];
-  for(var k=0;k<it.length;k++){
-    if(!it[k].ok){ badN++; continue; }
-    if(it[k].status==='對咗') okN++;
-    else if(it[k].status==='待覆點') recN++;
-    else if(it[k].status==='交Ivan') bossN++;
+  if(bad){
+    go.disabled=false; go.textContent='✅ 交呢一批';
+    alert('交唔到：'+stkWhy(bad.r)+(bad.at>0?('\n\n頭 '+bad.at+' 批已經交咗（'+saved+' 件）。'):'')+'\n\n再撳一次唔會重複記。');
+    return;
+  }
+  var okN=0, recN=0, bossN=0, badN=0;
+  for(var k=0;k<all.length;k++){
+    if(!all[k].ok){ badN++; continue; }
+    if(all[k].status==='對咗') okN++;
+    else if(all[k].status==='待覆點') recN++;
+    else if(all[k].status==='交Ivan') bossN++;
   }
   var h='<div class="ct-done"><b>收到 ✓</b><br>對咗 '+okN+' 樣'
       + (recN?('　·　'+recN+' 樣要覆點'):'')
       + (bossN?('　·　'+bossN+' 樣已交 Ivan'):'')
       + (badN?('　·　'+badN+' 樣交唔到'):'')
-      + '<br><br>仲有 <b>'+(r.left||0)+'</b> 樣未點。</div>';
+      + '<br><br>仲有 <b>'+left+'</b> 樣未點。</div>';
   if(bossN) h+='<div class="ct-warn">⚠️ 有 '+bossN+' 樣差得多，已經自動交咗畀 Ivan。<br><b>唔好自己改 Shopify 數量。</b></div>';
-  if(r.left>0) h+='<button class="ct-go" id="stNext">➡️ 落一批</button>';
+  if(left>0) h+='<button class="ct-go" id="stNext">➡️ 落一批</button>';
   else h+='<div class="ct-done"><b>呢間舖點晒喇 🎉</b></div>';
   document.getElementById('stkBody').innerHTML=h;
   var nx=document.getElementById('stNext');
