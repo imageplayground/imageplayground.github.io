@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-21-04:-->
+<!DOCTYPE html><!--APPVER:2026-09-21-05:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -859,7 +859,8 @@ async function stkSend(){
   var all=[], saved=0, left=0, bad=null;
   for(var c=0;c<chunks.length;c++){
     go.textContent=chunks.length>1 ? ('交緊… ('+(c+1)+'/'+chunks.length+')') : '交緊…';
-    var r=await jsonp({stsubmit:'1', code:PIN, store:STORE, sid:STK.sid, opened:String(STK.opened||''), items:chunks[c].join(',')});
+    /* 參數名一定要用 stsid，唔可以用 sid：sid 係 Google 保留參數，Apps Script 收唔到就直接拒收 */
+    var r=await jsonp({stsubmit:'1', code:PIN, store:STORE, stsid:STK.sid, opened:String(STK.opened||''), items:chunks[c].join(',')});
     if(!r || !r.ok){ bad={r:r, at:c}; break; }
     all=all.concat(r.items||[]); saved+=(r.saved||0); left=(r.left!=null?r.left:left);
   }
