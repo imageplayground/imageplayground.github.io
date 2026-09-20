@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-21-01:-->
+<!DOCTYPE html><!--APPVER:2026-09-21-02:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -178,7 +178,7 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-09-21-01';
+var APP_VER='2026-09-21-02';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -898,6 +898,7 @@ async function stkOwner(){
    + '<select id="stkScope" class="ct-in" style="width:100%;margin-bottom:6px">'
    + '<option value="全店">全店</option><option value="要實數清單">要實數清單</option>'
    + '<option value="類別:菲林">只點菲林</option><option value="類別:相機">只點相機</option><option value="類別:其他">只點其他</option>'
+   + '<option value="品牌+類型">按品牌＋類型…（同 Stocky 一樣，最貼身）</option>'
    + '<option value="品牌:">按品牌…</option><option value="供應商:">按供應商…</option><option value="類型:">按 Shopify 產品類型…</option></select>'
    + '<input id="stkVal" class="ct-in" style="width:100%;margin-bottom:6px;display:none" placeholder="打品牌／供應商／類型名（例：Kodak）">'
    + '<select id="stkSize" class="ct-in" style="width:100%;margin-bottom:6px"><option value="25">每批 25 件</option><option value="50">每批 50</option><option value="100">每批 100</option><option value="250">每批 250</option><option value="0">一次過（最多 250）</option></select>'
@@ -908,7 +909,13 @@ async function stkOwner(){
   for(var z=0;z<rots.length;z++) rots[z].addEventListener('click', stkRotGo);
   var scEl=document.getElementById('stkScope');
   scEl.addEventListener('change', function(){
-    document.getElementById('stkVal').style.display = /:$/.test(scEl.value) ? 'block' : 'none';
+    var need=/:$/.test(scEl.value)||scEl.value==='品牌+類型';
+    var box=document.getElementById('stkVal');
+    box.style.display = need ? 'block' : 'none';
+    box.placeholder = (scEl.value==='品牌+類型') ? '品牌 | 類型（例：Kodak | 135 Color Film）'
+                    : (scEl.value==='品牌:') ? '打品牌名（例：Kodak）'
+                    : (scEl.value==='供應商:') ? '打供應商名（例：Aperture）'
+                    : '打 Shopify 產品類型（例：135 Color Film）';
   });
 }
 /* 一撳開返「今日輪到」嗰個牌子（次序由 Ivan 喺 Stocky 定落，寫咗入盤點輪替表） */
@@ -925,15 +932,27 @@ async function stkRotGo(e){
 }
 
 async function stkCreate(){
-  var st=document.getElementById('stkStore').value, sc=document.getElementById('stkScope').value;
+  var st=document.getElementById('stkStore').value;
+  var sc=document.getElementById('stkScope').value;
+  var nm=(document.getElementById('stkName')||{}).value||'';
+  var val=((document.getElementById('stkVal')||{}).value||'').trim();
+  STK.size=Number((document.getElementById('stkSize')||{}).value||25);
+  if(sc==='品牌+類型'){
+    var bits=val.split('|');
+    if(bits.length<2 || !bits[0].trim() || !bits[1].trim()){ alert('要打「品牌 | 類型」，中間用 | 分開。\n例：Kodak | 135 Color Film'); return; }
+    sc='品牌:'+bits[0].trim()+'|類型:'+bits[1].trim();
+  } else if(/:$/.test(sc)){
+    if(!val){ alert('要打埋品牌／供應商／類型名。'); return; }
+    sc=sc+val;
+  }
   if(!confirm('喺「'+st+'」開一次盤點（'+sc+'）？\n店員會即刻見到。唔會改 Shopify。')) return;
   var go=document.getElementById('stkGo'); go.disabled=true; go.textContent='開緊…';
   if(!STK.ckey) STK.ckey='c'+Date.now()+Math.random().toString(36).slice(2,8);
-  var r=await jsonp({stcreate:'1', code:PIN, store:st, scope:sc, name:nm, key:STK.ckey});
+  var r=await jsonp({stcreate:'1', code:PIN, store:st, scope:sc, name:nm.trim(), key:STK.ckey});
   go.disabled=false; go.textContent='開盤點';
   if(!r || !r.ok){ alert((r&&r.msg)||'開唔到，再試一次。'); return; }
   STK.ckey='';
-  alert('開咗：'+r.id+'\n'+r.n+' 樣要點'+(r.src==='快照'?'\n⚠️ 攞唔到即時系統數，用咗今朝快照做比較（差異表會標明）':''));
+  alert('開咗：'+r.id+'\n'+r.n+' 樣要點（其中 '+(r.blindN||0)+' 樣抽查盲數）'+(r.src==='快照'?'\n⚠️ 攞唔到即時系統數，用咗今朝快照':''));
   cntLoad();
 }
 document.getElementById('stkClose').addEventListener('click', stkClose);
