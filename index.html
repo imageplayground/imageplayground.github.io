@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-21-02:-->
+<!DOCTYPE html><!--APPVER:2026-09-21-03:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -178,7 +178,7 @@ var PIN=LS.getItem('img_pin')||'', NAME=LS.getItem('img_name')||'', STORE=LS.get
 var PICKED=LS.getItem('img_picked')==='1';
 function hkDay(){ try{ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Hong_Kong'}); }catch(e){ return ''+new Date().getDate(); } }
 if(PICKED && LS.getItem('img_store_day')!==hkDay()){ STORE=''; }
-var APP_VER='2026-09-21-02';
+var APP_VER='2026-09-21-03';
 var msgs=document.getElementById('msgs');
 var qEl=document.getElementById('q'), sendBtn=document.getElementById('send');
 var busy=false, seq=0;
@@ -768,11 +768,17 @@ async function stkPeek(){
   b.insertBefore(d, b.firstChild);
 }
 
+function stkWhy(r){
+  if(!r) return '冇回應';
+  if(r.timeout) return '等咗 30 秒都未有回應（件數太多？試下分批交）';
+  if(r.error) return '連線失敗';
+  return r.msg || r.ex || r.err || '未知原因';
+}
 async function stkLoad(q){
   var b=document.getElementById('stkBody');
   b.innerHTML='<div class="ct-done">攞緊要點嘅貨…</div>';
   var r=await jsonp({stbatch:'1', code:PIN, store:STORE, size:String(STK.size||25), q:q||''});
-  if(!r || !r.ok){ b.innerHTML='<div class="ct-done">'+esc((r&&r.msg)||'攞唔到，網絡唔通？撳返 ✕ 再入一次。')+'</div>'; return; }
+  if(!r || !r.ok){ b.innerHTML='<div class="ct-done">攞唔到：'+esc(stkWhy(r))+'<br>撳返 ✕ 再入一次。</div>'; return; }
   if(r.none){ b.innerHTML='<div class="ct-done"><b>而家冇盤點要做 ✓</b><br>Ivan 開咗盤點你就會見到。</div>'; return; }
   if(!r.items || !r.items.length){
     b.innerHTML='<div class="ct-done"><b>搵唔到「'+esc(q||'')+'」</b><br>可能已經點咗，或者唔喺呢張單入面。</div>'
@@ -841,7 +847,7 @@ async function stkSend(){
   var go=document.getElementById('stGo'); go.disabled=true; go.textContent='交緊…';
   var r=await jsonp({stsubmit:'1', code:PIN, store:STORE, sid:STK.sid, opened:String(STK.opened||''), items:JSON.stringify(arr)});
   STK.busy=false;
-  if(!r || !r.ok){ go.disabled=false; go.textContent='✅ 交呢一批'; alert((r&&r.msg)||'交唔到，網絡唔通？再撳一次（唔會重複記）。'); return; }
+  if(!r || !r.ok){ go.disabled=false; go.textContent='✅ 交呢一批'; alert('交唔到：'+stkWhy(r)+'\n\n再撳一次唔會重複記。'); return; }
   var okN=0, recN=0, bossN=0, badN=0, it=r.items||[];
   for(var k=0;k<it.length;k++){
     if(!it[k].ok){ badN++; continue; }
@@ -926,7 +932,7 @@ async function stkRotGo(e){
   var key='c'+Date.now()+Math.random().toString(36).slice(2,8);
   var r=await jsonp({stcreate:'1', code:PIN, store:st, scope:'品牌:'+vendor, name:vendor+'（'+st+'）', key:key});
   btn.disabled=false; btn.textContent='開「'+vendor+'」盤點';
-  if(!r || !r.ok){ alert((r&&r.msg)||'開唔到，再試一次。'); return; }
+  if(!r || !r.ok){ alert('開唔到：'+stkWhy(r)); return; }
   alert('開咗：'+r.id+'\n'+r.n+' 樣要點（其中 '+(r.blindN||0)+' 樣抽查盲數）'+(r.src==='快照'?'\n⚠️ 攞唔到即時系統數，用咗今朝快照':''));
   cntLoad();
 }
@@ -950,7 +956,7 @@ async function stkCreate(){
   if(!STK.ckey) STK.ckey='c'+Date.now()+Math.random().toString(36).slice(2,8);
   var r=await jsonp({stcreate:'1', code:PIN, store:st, scope:sc, name:nm.trim(), key:STK.ckey});
   go.disabled=false; go.textContent='開盤點';
-  if(!r || !r.ok){ alert((r&&r.msg)||'開唔到，再試一次。'); return; }
+  if(!r || !r.ok){ alert('開唔到：'+stkWhy(r)); return; }
   STK.ckey='';
   alert('開咗：'+r.id+'\n'+r.n+' 樣要點（其中 '+(r.blindN||0)+' 樣抽查盲數）'+(r.src==='快照'?'\n⚠️ 攞唔到即時系統數，用咗今朝快照':''));
   cntLoad();
