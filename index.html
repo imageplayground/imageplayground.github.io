@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--APPVER:2026-09-21-09:-->
+<!DOCTYPE html><!--APPVER:2026-09-21-10:-->
 <html lang="zh-HK">
 <head>
 <meta charset="utf-8">
@@ -790,8 +790,13 @@ async function stkPeekGet(force){
 /* 幾時先唔自動入盤點：只有店員自己撳咗「唔做盤點，去今日點貨」先算，而且只擋 10 分鐘。
    （舊寫法係「一個 session 只入一次」→ 出返去再入就唔再跳，變返相機清單。Ivan 撞到。）*/
 function stkSkipped(){ return !!(STK.skipAuto && (Date.now()-STK.skipAuto) < 600000); }
+/* 老闆（全店碼）唔好自動彈店員嗰版盤點：佢要睇嘅係三間舖總覽。
+   注意 stprogress 回嘅 `boss` 係「幾多件要你裁決」個數，唔係「你係咪老闆」，
+   所以唔可以攞佢嚟分身份 —— 用登入時記低嘅 img_all。 */
+function stkIsBoss(){ try{ return LS.getItem('img_all')==='1'; }catch(e){ return false; } }
 function stkActive(r){
-  if(!r || !r.ok || r.none || r.boss) return false;
+  if(stkIsBoss()) return false;
+  if(!r || !r.ok || r.none) return false;
   var left=(r.todo||0)+(r.recount||0);
   return !!(left || r.status==='進行中');
 }
